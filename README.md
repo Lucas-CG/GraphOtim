@@ -34,5 +34,7 @@ alocadas em uma fibra qualquer da rede.
 
 Divisão do problema em 2:
 
-- Roteamento: a ser resolvido com um algoritmo de k-menores caminhos entre todos os pares desejados
-- Coloração: obtida a lista de caminhos, fazer algumas combinações e abstrair o problema para um de coloração em grafos. Um novo grafo deve ser elaborado, sendo os vértices os caminhos selecionados, e as arestas uma representação de que há pelo menos uma aresta em comum entre um par de caminhos.
+- Roteamento:
+  - Versão tonta: 1 caminho mínimo para cada par de vértices.
+  - Versão mais esperta: k-menores caminhos entre todos os pares desejados
+- Coloração: obtida a lista de caminhos (se houver mais de 1 por par), fazer algumas combinações e abstrair o problema para um de coloração em grafos. Um novo grafo deve ser elaborado, sendo os vértices os caminhos selecionados, e as arestas uma representação de que há pelo menos uma aresta em comum entre um par de caminhos.

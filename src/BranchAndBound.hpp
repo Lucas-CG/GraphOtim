@@ -2,7 +2,7 @@
 #include <vector>
 #include <utility>
 
-class BruteForce
+class BranchAndBound
 {
 
   private:
@@ -17,7 +17,5 @@ class BruteForce
        std::vector< std::unordered_set<intType> > frequencies);
 
     bool findPath(Graph &graph, intType source, intType destination, intType frequency, Path &presentPath);
-
-    bool doPathsHaveCollision(Path path1, Path path2)
 
 }

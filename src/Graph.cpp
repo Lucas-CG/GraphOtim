@@ -2,6 +2,7 @@
 #include <fstream> //std::ifstream
 #include <iterator> //std::back_inserter
 #include <string> //std::string, std::stoi
+#include <unordered_set> //std::unordered_set
 
 template<typename Out>
 void split(const std::string &s, char delim, Out result)
@@ -18,7 +19,7 @@ void split(const std::string &s, char delim, Out result)
 
 }
 
-void Graph::addEdge(intType a, intType b, std::vector<intType> frequencies)
+void Graph::addEdge(intType a, intType b, std::unordered_set<intType> frequencies)
 {
 
   list[a][b] = frequencies;
@@ -31,8 +32,8 @@ void Graph::addEdge(intType a, intType b, std::vector<intType> frequencies)
 void Graph::addFrequency(intType a, intType b, intType f)
 {
 
-  list[a][b].push_back(f);
-  list[b][a].push_back(f);
+  list[a][b].emplace(f);
+  list[b][a].emplace(f);
 
 }
 
@@ -52,8 +53,8 @@ void Graph::readFromFile(std::string fileName)
     intType node1 = (intType)std::stoi(nodes[0]);
     intType node2 = (intType)std::stoi(nodes[0]);
 
-    std::vector<intType> emptyVector;
-    addEdge(node1, node2, emptyVector);
+    std::unordered_set<intType> emptySet;
+    addEdge(node1, node2, emptySet);
 
   }
 

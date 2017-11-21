@@ -1,9 +1,9 @@
-#include "BruteForce.hpp"
+#include "BranchAndBound.hpp"
 #include <algorithm> //std::max_element
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 
-void BruteForce::run(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
+void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
    std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
     std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue)
 {
@@ -70,7 +70,7 @@ void BruteForce::run(Graph &graph, std::vector< std::pair<intType, intType> > re
 
 }
 
-bool BruteForce::isViable(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
+bool BranchAndBound::isViable(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
    std::vector< std::unordered_set<intType> > frequencies)
 {
   //viável significa que as frequências ligam os pares de vértices pedidos
@@ -158,7 +158,7 @@ bool BruteForce::isViable(Graph &graph, std::vector< std::pair<intType, intType>
 
 }
 
-bool BruteForce::findPath(Graph &graph, intType source, intType destination, intType frequency, Path &presentPath)
+bool BranchAndBound::findPath(Graph &graph, intType source, intType destination, intType frequency, Path &presentPath)
 {
 
   if (source == destination) return true;
@@ -182,7 +182,7 @@ bool BruteForce::findPath(Graph &graph, intType source, intType destination, int
 
 }
 
-bool BruteForce::doPathsHaveCollision(Path path1, Path path2)
+bool BranchAndBound::doPathsHaveCollision(Path path1, Path path2)
 {
 
   //o conjunto de arestas reúne um par (aresta, frequência)
