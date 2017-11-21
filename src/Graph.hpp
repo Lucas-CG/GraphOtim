@@ -4,41 +4,42 @@
 #include <string> //std::string
 #include <priority_queue> //std::priority_queue
 
-typedef uint_fast32_t nodeIndex;
-typedef uint_fast32_t frequencyIndex;
+typedef uint_fast32_t intType;
 
 template<typename Out>
 void split(const std::string &s, char delim, Out result);
 
-class Path {
-
-  private:
-    std::vector<nodeIndex> nodeList;
+class Path
+{
 
   public:
-    frequencyIndex frequency;
+    intType frequency;
+    std::vector<intType> nodeList;
 
 }
 
-class Graph {
+class Graph
+{
 
   private:
 
     //o grafo é representado como um array associativo
     //o primeiro elemento é um vértice, e o segundo elemento é um outro array associativo
     //com vizinhos do vértice e os números das frequências alocadas para as respectivas arestas
-    std::unordered_map< nodeIndex, std::unordered_map < nodeIndex, frequencyIndex > > list;
+    std::unordered_map< intType, std::unordered_map < intType, std::vector<intType> > > list;
 
   public:
 
-    void addEdge(nodeIndex a, nodeIndex b, frequencyIndex f);
-    void changeFrequency(nodeIndex a, nodeIndex b, frequencyIndex f);
+    void addEdge(intType a, intType b, std::vector<intType> frequencies);
+    void addFrequency(intType a, intType b, intType f);
     void readFromFile(std::string fileName);
     void print();
-    std::priority_queue < std::vector<nodeIndex> > kShortestPaths(uint_fast32_t num_shortest_paths);
+    std::priority_queue < std::vector<intType> > kShortestPaths(uint_fast32_t num_shortest_paths);
+
+    intType numEdges = 0;
 
     //iterar sobre unordered_map:
-    //for (auto it: unordered_map_name){it.algo...}
+    //for (auto it: unordered_map_name){*it.algo...}
 
     Graph();
 

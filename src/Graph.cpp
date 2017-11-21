@@ -4,46 +4,56 @@
 #include <string> //std::string, std::stoi
 
 template<typename Out>
-void split(const std::string &s, char delim, Out result) {
+void split(const std::string &s, char delim, Out result)
+{
 
     std::stringstream ss;
     ss.str(s);
     std::string item;
 
-    while ( std::getline(ss, item, delim) ) {
+    while ( std::getline(ss, item, delim) )
+    {
         *(result++) = item;
     }
 
 }
 
-void Graph::addEdge(nodeIndex a, nodeIndex b, frequencyIndex f){
+void Graph::addEdge(intType a, intType b, std::vector<intType> frequencies)
+{
 
-  list[a][b] = f;
-  list[b][a] = f;
+  list[a][b] = frequencies;
+  list[b][a] = frequencies;
 
-}
-
-void Graph::changeFrequency(nodeIndex a, nodeIndex b, frequencyIndex f) {
-
-  addEdge(a, b, f);
+  numEdges++;
 
 }
 
-void Graph::readFromFile(std::string fileName){
+void Graph::addFrequency(intType a, intType b, intType f)
+{
+
+  list[a][b].push_back(f);
+  list[b][a].push_back(f);
+
+}
+
+void Graph::readFromFile(std::string fileName)
+{
 
   std::ifstream inFile(fileName);
   string line;
 
-  while ( std::getline(inFile, line) ){
+  while ( std::getline(inFile, line) )
+  {
 
     //cada linha corresponde a uma aresta
     vector<string> nodes;
     split( str, ' ', std::back_inserter(nodes) );
 
-    nodeIndex node1 = (nodeIndex)std::stoi(nodes[0]);
-    nodeIndex node2 = (nodeIndex)std::stoi(nodes[0]);
+    intType node1 = (intType)std::stoi(nodes[0]);
+    intType node2 = (intType)std::stoi(nodes[0]);
 
-    addEdge(node1, node2, 0);
+    std::vector<intType> emptyVector;
+    addEdge(node1, node2, emptyVector);
 
   }
 
