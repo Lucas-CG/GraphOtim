@@ -30,11 +30,31 @@ alocadas em uma fibra qualquer da rede.
   - Limite superior (primal): menor valor entre número de arestas + 1 (o pior caso corresponde a um grafo linha, com todas as combinações possíveis), a melhor solução encontrada até o momento e o resultado de uma heurística (a definir)
   - Limite inferior (dual): maior valor entre 1 (melhor caso corresponde a um grafo completo) e o total de frequências já alocadas (o segundo valor só vale no caso local)
 
-## Algoritmo Heurístico
+## (Meta-)Heurísticas
 
 Divisão do problema em 2:
 
 - Roteamento:
   - Versão tonta: 1 caminho mínimo para cada par de vértices.
   - Versão mais esperta: k-menores caminhos entre todos os pares desejados
-- Coloração: obtida a lista de caminhos (se houver mais de 1 por par), fazer algumas combinações e abstrair o problema para um de coloração em grafos. Um novo grafo deve ser elaborado, sendo os vértices os caminhos selecionados, e as arestas uma representação de que há pelo menos uma aresta em comum entre um par de caminhos.
+- Coloração: obtida a lista de caminhos (se houver mais de 1 por par), fazer algumas combinações e abstrair o problema para um de coloração em grafos. Um novo grafo deve ser elaborado, sendo os vértices os caminhos selecionados, e as arestas uma representação de que há pelo menos uma aresta em comum entre um par de caminhos. Executar uma heurística em cima da coloração (genético? *simulated annealing*? grasp?)
+
+Outras propostas:
+
+- Fluxo mínimo de múltiplas origens e múltiplos destinos. Todas as arestas possuem capacidade 1 e cada conexão é um fluxo unitário. Modificar o grafo para todas as fontes estarem ligadas a um novo nó e todos os destinos estarem ligados a um outro novo nó. Só funciona se os nós fonte não forem destinos! Pode ser necessário trocar o sentido de algumas arestas.
+- *Multicommodity Flow Problem* -> isso é tão np-brabo quanto o problema original
+- Algoritmo genético direto
+- *Simulated Annealing*
+- Calcular todos os (k?)caminhos mínimos entre origens e destinos e contar quantas vezes uma aresta aparece nos caminhos mínimos (*betweenness*)
+- Procedimentos de caminho mínimo aplicados para caminhos máximos
+
+## Pré-processamento
+
+- Cortar vértices que não são origem e destino e estão isolados (grau 1 com apenas 1 dos vértices)
+
+## Instâncias
+
+- Gerar com algum modelo de grafo aleatório
+  - Uma ideia é tentar G(n, p), estimando p com base em datasets grandes de redes de computadores (tem o dataset da Internet e o NSFNet)
+
+- As duas versões do NSFNet que li nos artigos
