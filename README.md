@@ -27,8 +27,8 @@ alocadas em uma fibra qualquer da rede.
 ## Algoritmo Exato
 
 - Branch-and-bound
-  - Limite superior (primal): menor valor entre número de arestas + 1 (o pior caso corresponde a um grafo linha, com todas), a melhor solução encontrada até o momento e o resultado de uma heurística (a definir)
-  - Limite inferior (dual): 1 (melhor caso corresponde a um grafo completo)
+  - Limite superior (primal): menor valor entre número de arestas + 1 (o pior caso corresponde a um grafo linha, com todas as combinações possíveis), a melhor solução encontrada até o momento e o resultado de uma heurística (a definir)
+  - Limite inferior (dual): maior valor entre 1 (melhor caso corresponde a um grafo completo) e o total de frequências já alocadas (o segundo valor só vale no caso local)
 
 ## Algoritmo Heurístico
 

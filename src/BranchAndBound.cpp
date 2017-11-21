@@ -3,11 +3,23 @@
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 
-void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
+void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
    std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
-    std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue)
+    std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue, intType upperLimitValue,
+   intType lowerLimitValue)
 {
-  //representação
+
+  if(frequencyIndex == 0)
+  {
+
+    globalUpperLimit = graph.numEdges + 1; //pior caso: grafo linha com todos os nós conectados
+    globalLowerLimit = 1;
+
+  }
+
+  intType localUpperLimit;
+  intType localLowerLimit;
+
 
   //número de arestas do grafo, também é o maximo de frequẽncias que podemos alocar
   intType edges = graph.numEdges;
@@ -23,7 +35,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
   if ( frequencyIndex == maxFrequencies ) //já cheguei ao limite de frequências
   {
 
-    if ( isViable(graph, frequencies) )
+    if ( isViable(graph, requestedConnections, frequencies) )
     {
 
       //coletando número de frequências alocadas(maior elemento do vetor + 1)
@@ -70,8 +82,8 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
 }
 
-bool BranchAndBound::isViable(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
-   std::vector< std::unordered_set<intType> > frequencies)
+bool BranchAndBound::isViable(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
+   std::vector< std::unordered_set<intType> > & frequencies)
 {
   //viável significa que as frequências ligam os pares de vértices pedidos
   //e que não há dois caminhos que compartilham arestas com a mesma frequência
@@ -182,7 +194,7 @@ bool BranchAndBound::findPath(Graph &graph, intType source, intType destination,
 
 }
 
-bool BranchAndBound::doPathsHaveCollision(Path path1, Path path2)
+bool BranchAndBound::doPathsHaveCollision(Path &path1, Path &path2)
 {
 
   //o conjunto de arestas reúne um par (aresta, frequência)

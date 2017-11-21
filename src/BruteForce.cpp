@@ -3,7 +3,7 @@
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 
-void BruteForce::run(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
+void BruteForce::run(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
    std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
     std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue)
 {
@@ -23,7 +23,7 @@ void BruteForce::run(Graph &graph, std::vector< std::pair<intType, intType> > re
   if ( frequencyIndex == maxFrequencies ) //já cheguei ao limite de frequências
   {
 
-    if ( isViable(graph, frequencies) )
+    if ( isViable(graph, requestedConnections, frequencies) )
     {
 
       //coletando número de frequências alocadas(maior elemento do vetor + 1)
@@ -70,8 +70,8 @@ void BruteForce::run(Graph &graph, std::vector< std::pair<intType, intType> > re
 
 }
 
-bool BruteForce::isViable(Graph &graph, std::vector< std::pair<intType, intType> > requestedConnections,
-   std::vector< std::unordered_set<intType> > frequencies)
+bool BruteForce::isViable(Graph &graph, std::vector< std::pair<intType, intType> > &requestedConnections,
+   std::vector< std::unordered_set<intType> > &frequencies)
 {
   //viável significa que as frequências ligam os pares de vértices pedidos
   //e que não há dois caminhos que compartilham arestas com a mesma frequência
@@ -182,7 +182,7 @@ bool BruteForce::findPath(Graph &graph, intType source, intType destination, int
 
 }
 
-bool BruteForce::doPathsHaveCollision(Path path1, Path path2)
+bool BruteForce::doPathsHaveCollision(Path &path1, Path &path2)
 {
 
   //o conjunto de arestas reúne um par (aresta, frequência)
