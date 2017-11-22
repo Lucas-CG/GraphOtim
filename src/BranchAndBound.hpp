@@ -1,13 +1,26 @@
-#include <Graph.hpp>
+#include "Graph.hpp"
 #include <vector> //std::vector
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 
-class BranchAndBound
+class Limit
 {
 
-  private:
+  public:
 
+    void calculate(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,
+      std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex, intType bestSolutionValue);
+
+    bool isViable;
+    intType limitValue;
+
+}
+
+class LowerLimit: public Limit{}
+class UpperLimit: public Limit{}
+
+class BranchAndBound
+{
   public:
 
     void run(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,

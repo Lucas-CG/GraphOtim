@@ -3,10 +3,21 @@
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 
+void UpperLimit::calculate(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,
+  std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex, intType bestSolutionValue)
+{
+
+  intType lineGraphFrequencyAmount = graph.numEdges + 1;
+
+
+  limitValue = max(lineGraphFrequencyAmount, ...)
+
+}
+
 void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
    std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
-    std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue, intType upperLimitValue,
-   intType lowerLimitValue)
+    std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue, intType localUpperLimitValue,
+   intType localLowerLimitValue)
 {
 
   if(frequencyIndex == 0)
@@ -17,9 +28,8 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
   }
 
-  intType localUpperLimit;
-  intType localLowerLimit;
-
+  intType localUpperLimit = localUpperLimitValue;
+  intType localLowerLimit = localLowerLimitValue;
 
   //número de arestas do grafo, também é o maximo de frequẽncias que podemos alocar
   intType edges = graph.numEdges;
@@ -32,7 +42,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
   //bestSolutionValue = graph.numEdges + 2, 1 a mais que o limite
 
 
-  if ( frequencyIndex == maxFrequencies ) //já cheguei ao limite de frequências
+  if ( frequencyIndex == maxFrequencies or localUpperLimit == localLowerLimit) //cheguei ao limite de frequências ou os limites se encontraram
   {
 
     if ( isViable(graph, requestedConnections, frequencies) )
@@ -174,6 +184,7 @@ bool BranchAndBound::findPath(Graph &graph, intType source, intType destination,
 {
 
   if (source == destination) return true;
+  bool foundAPath = false;
 
   for (auto & neighbor: graph.list[source])
   {
@@ -183,13 +194,14 @@ bool BranchAndBound::findPath(Graph &graph, intType source, intType destination,
     {
         intType presentNode = neighbor.first;
         presentPath.nodeList.push_back(presentNode);
-        return findPath(graph, presentNode, destination, frequency, presentPath);
+        foundAPath = findPath(graph, presentNode, destination, frequency, presentPath);
+        if(foundAPath) break;
     }
 
   }
 
   //retorno false se não consegui encontrar o destino
-  return false;
+  return foundAPath;
 
 
 }
