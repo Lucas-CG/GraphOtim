@@ -105,7 +105,7 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, intType source, i
 
 }
 
-bool BetweennessHeuristic::calculate(Graph graph, std::vector< std::pair<intType, intType> > & requestedConnections, intType & value)
+bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections, intType & value)
 {
 
   //chave: aresta(vértice1, vértice2), valor mapeado: betweenness
@@ -142,6 +142,7 @@ bool BetweennessHeuristic::calculate(Graph graph, std::vector< std::pair<intType
     if(edge.second > maxBetweenness) maxBetweenness = it.second;
   }
 
-return maxBetweenness;
+value = maxBetweenness;
+return true;
 
 }

@@ -3,7 +3,8 @@
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 #include <vector> //std::vector
-#include <algorithm> //std::max
+#include <algorithm> //std::max, std::min
+#include "BetweennessHeuristic.hpp"
 
 //calcula a quantidade de frequências necessárias em um grafo linha
 //onde todas as possíveis combinações de vértices devem ter uma conexão
@@ -32,9 +33,8 @@ void PathGlobalUpperLimit::calculate(Graph & graph)
 }
 
 void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-   std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex, bool hasPastFrequencyBeenAssigned,
-   std::vector< std::pair<intType, intType> > connectionsToDo, std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue,
-   LocalLowerLimit localLowerLimit, LocalUpperLimit localUpperLimit)
+   std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
+   std::vector< std::pair<intType, intType> > connectionsToDo)
 {
 
 
@@ -42,11 +42,19 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
   if(frequencyIndex == 0)
   {
     pathLimit.calculate(graph);
-    globalUpperLimit.value = pathLimit.value; //pior caso: grafo linha
+
+    BetweennessHeuristic btwn;
+    intType betweennessLimitValue;
+    betweennessViable = btwn.calculate(graph, requestedConnections, betweennessLimitValue);
+    if(!betweennessViable) return; //problema inviável (não existe caminho para alguma das conexões?)
+
+    globalUpperLimit.value = std::min(pathLimit.value, betweennessLimitValue);
     globalUpperLimit.isViable = true;
+
     globalLowerLimit.value = 1; //melhor caso: grafo completo
     globalLowerLimit.isViable = true;
-    maxFrequencies = pathLimit.value;
+
+    maxFrequencies = globalUpperLimit.value;
 
   }
 
@@ -64,39 +72,35 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
   //determinando o limite superior local
 
-  //menor valor entre o limite global e o valor da melhor solução encontrada até o momento + por quantas frequências falta iterar
-  localUpperLimit.value = std::max(globalUpperLimit.value, bestSolutionValue + ( (maxFrequencies - 1) - frequencyIndex ) );
+  //menor valor entre o limite global e o valor da solução atual + por quantas frequências falta iterar
+  localUpperLimit.value = std::min(globalUpperLimit.value, numFrequencies + ( (maxFrequencies - 1) - frequencyIndex ) );
 
-  //é aqui que tenho que ver se pulei demais
-  localUpperLimit.isViable = globalUpperLimit.isViable;
+  localUpperLimit.isViable = true;
 
   localLowerLimit.value = std::max(1, numFrequencies);
   localLowerLimit.isViable = true;
 
-  intType edges = graph.numEdges;
+  intType numEdges = graph.numEdges;
 
+  //poda por limitante
+  if(localLowerLimit > globalUpperLimit) return;
 
   //caso inicial:
   //frequencies é um vetor de graph.numEdges arrays com apenas a frequência 0
   //frequencyIndex = 0
-  //bestSolution é um vetor vazio
-  //bestSolutionValue = infinito
+  //connectionsToDo = requestedConnections
 
-  makeFrequencyGraph(graph, frequencies);
+  //verifica viabilidade
+  checkConnections(graph. requestedConnections, frequencies, connectionsToDo);
 
-  for (auto it: connectionsToDo)
+
+//chegamos ao final das iterações ou ocorreu uma poda por otimalidade
+  if (frequencyIndex == maxFrequencies or localUpperLimit.value == localLowerLimit.value)
   {
 
-    if (checkConnection(graph),)
 
-  }
-
-
-  if ( frequencyIndex == maxFrequencies or localUpperLimit.value == localLowerLimit.value or connectionsToDo.size() == 0) //cheguei ao limite de frequências ou os limites se encontraram
-  {
-
-    if ( isViable(graph, requestedConnections, frequencies) )
-    {
+    //poda por viabilidade
+    if( connectionsToDo.empty() ){
 
       //coletando número de frequências alocadas(maior elemento do vetor + 1)
       auto largestSetIterator = std::max_element(std::begin(frequencies),
@@ -214,20 +218,23 @@ bool BranchAndBound::checkConnection(Graph graph, std::pair<intType, intType> co
 }
 
 
-bool BranchAndBound::isViable(Graph graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-   std::vector< std::unordered_set<intType> > & frequencies)
+void BranchAndBound::checkConnections(Graph graph, std::vector< std::pair<intType, intType> > & requestedConnections,
+   std::vector< std::unordered_set<intType> > & frequencies, std::vector< std::pair<intType, intType> > &connectionsToDo)
 {
-  //viável significa que as frequências ligam os pares de vértices pedidos
-  //e que não há dois caminhos que compartilham arestas com a mesma frequência
-  //alocada
+
+  //verifica viabilidade:
+  //1) todas as conexões pedidas foram feitas?
+  //2) as conexões estão livres de colisões?
 
   //transfere as frequências do vetor para o grafo
 
   Graph g = makeFrequencyGraph(graph, frequencies);
 
-  vector<Path> pathList;
+  std::vector<Path> pathList;
 
-  //verifica se todos os pedidos de conexão foram atendidos
+  std::vector< std::pair<intType, intType> > updateToDo;
+
+  //verifica se todos os pedidos de conexão foram "atendidos"
   for (auto & connection: requestedConnections)
   {
     Path path;
@@ -237,7 +244,8 @@ bool BranchAndBound::isViable(Graph graph, std::vector< std::pair<intType, intTy
       pathList.push_back(path);
     }
 
-    else return false;
+    else updateToDo.push_back(connection);
+    //a conexão não foi atendida se não tem caminho
 
   }
 
@@ -249,12 +257,24 @@ bool BranchAndBound::isViable(Graph graph, std::vector< std::pair<intType, intTy
 
     for(intType secondIndex = firstIndex + 1; firstIndex < pathList.size(); secondIndex++)
     {
-      if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) ) return false;
+
+      if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) )
+      {
+
+        std::pair<intType, intType> firstConnection(*pathList[firstIndex].nodeList.begin(), *(pathList[firstIndex].nodeList.end() - 1) )
+        std::pair<intType, intType> secondConnection(*pathList[secondIndex].nodeList.begin(), *(pathList[secondIndex].nodeList.end() - 1) )
+        updateToDo.push_back(firstConnection);
+        updateToDo.push_back(secondConnection);
+        //nenhuma das conexões foi atendida se ambas colidem
+
+      }
+
     }
 
   }
 
-  return true;
+  connectionsToDo.clear();
+  connectionsToDo = updateToDo;
 
 }
 

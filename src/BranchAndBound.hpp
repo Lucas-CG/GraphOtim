@@ -48,5 +48,7 @@ class BranchAndBound
     static GlobalLowerLimit globalLowerLimit;
     static PathGlobalUpperLimit pathLimit;
     static intType maxFrequencies;
+    static std::vector< std::unordered_set<intType> > &bestSolution;
+    static intType &bestSolutionValue;
 
 }
