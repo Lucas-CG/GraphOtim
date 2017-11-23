@@ -27,8 +27,11 @@ alocadas em uma fibra qualquer da rede.
 ## Algoritmo Exato
 
 - Branch-and-bound
-  - Limite superior (primal): menor valor entre número de arestas + 1 (o pior caso corresponde a um grafo linha, com todas as combinações possíveis), a melhor solução encontrada até o momento e o resultado de uma heurística (a definir)
+  - Limite superior (primal): menor valor entre o pior caso (grafo linha, com todas as combinações possíveis), a melhor solução encontrada até o momento e o resultado de uma heurística (a definir)
   - Limite inferior (dual): maior valor entre 1 (melhor caso corresponde a um grafo completo) e o total de frequências já alocadas (o segundo valor só vale no caso local)
+
+  - Como verificar inviabilidade?
+    - Pulei frequências demais?
 
 ## (Meta-)Heurísticas
 
@@ -44,13 +47,13 @@ Outras propostas:
 - Fluxo mínimo de múltiplas origens e múltiplos destinos. Todas as arestas possuem capacidade 1 e cada conexão é um fluxo unitário. Modificar o grafo para todas as fontes estarem ligadas a um novo nó e todos os destinos estarem ligados a um outro novo nó. Só funciona se os nós fonte não forem destinos! Pode ser necessário trocar o sentido de algumas arestas.
 - *Multicommodity Flow Problem* -> isso é tão np-brabo quanto o problema original
 - Algoritmo genético direto
-- *Simulated Annealing*
+- *Simulated Annealing* direto
 - Calcular todos os (k?)caminhos mínimos entre origens e destinos e contar quantas vezes uma aresta aparece nos caminhos mínimos (*betweenness*)
 - Procedimentos de caminho mínimo aplicados para caminhos máximos
 
 ## Pré-processamento
 
-- Cortar vértices que não são origem e destino e estão isolados (grau 1 com apenas 1 dos vértices)
+- Cortar vértices que não são origem e destino e estão isolados (grau 1 com apenas 1 dos vértices) (talvez valha a pena)
 
 ## Instâncias
 
@@ -58,3 +61,5 @@ Outras propostas:
   - Uma ideia é tentar G(n, p), estimando p com base em datasets grandes de redes de computadores (tem o dataset da Internet e o NSFNet)
 
 - As duas versões do NSFNet que li nos artigos
+
+- Como distribuir as demandas? (distribuição uniforme entre pares de vértices? priorizar distâncias longas?)

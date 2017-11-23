@@ -2,47 +2,90 @@
 #include <algorithm> //std::max_element
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
+#include <vector> //std::vector
+#include <algorithm> //std::max
 
-void UpperLimit::calculate(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-  std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex, intType bestSolutionValue)
+//calcula a quantidade de frequências necessárias em um grafo linha
+//onde todas as possíveis combinações de vértices devem ter uma conexão
+//(pior caso)
+void PathGlobalUpperLimit::calculate(Graph & graph)
 {
 
-  intType lineGraphFrequencyAmount = graph.numEdges + 1;
+  intType numPathEdges = graph.list.size() - 1
 
+  std::vector<intType> pathEdges(numPathEdges, 0);
 
-  limitValue = max(lineGraphFrequencyAmount, ...)
+  for (intType i = 0; i < numPathEdges; i++)
+  {
+
+    pathEdges[i] = (numPathEdges - i) * (i + 1);
+
+  }
+
+  intType maxValue = 0;
+
+  for (auto & it: pathEdges){ if(it > maxValue) maxValue = it; }
+
+  value = maxValue;
+
 
 }
 
 void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-   std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
-    std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue, intType localUpperLimitValue,
-   intType localLowerLimitValue)
+   std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex, bool hasPastFrequencyBeenAssigned,
+   std::vector< std::pair<intType, intType> > connectionsToDo, std::vector< std::unordered_set<intType> > &bestSolution, intType &bestSolutionValue,
+   LocalLowerLimit localLowerLimit, LocalUpperLimit localUpperLimit)
 {
 
   if(frequencyIndex == 0)
   {
 
-    globalUpperLimit = graph.numEdges + 1; //pior caso: grafo linha com todos os nós conectados
-    globalLowerLimit = 1;
+    pathLimit.calculate(graph);
+    globalUpperLimit.value = pathLimit.value;
+    globalUpperLimit.isViable = true;
+    globalLowerLimit.value = 1; //melhor caso: grafo completo
+    globalLowerLimit.isViable = true;
+    maxFrequencies = pathLimit.value;
 
   }
 
-  intType localUpperLimit = localUpperLimitValue;
-  intType localLowerLimit = localLowerLimitValue;
+  //coletando número de frequências alocadas(maior elemento do vetor + 1)
+  auto largestFrequencyIterator = std::max_element(std::begin(frequencies),
+                                 std::end(frequencies),
+                                 [](const std::unordered_set<intType>& lhs,
+                                    const std::unordered_set<intType>& rhs)
+                                 {
+                                   return lhs.size() < rhs.size();
+                                 });
 
-  //número de arestas do grafo, também é o maximo de frequẽncias que podemos alocar
+  intType numFrequencies = *largestFrequencyIterator.size();
+
+  localUpperLimit.value = globalUpperLimit.value;
+  localUpperLimit.isViable = globalUpperLimit.isViable;
+
+  localLowerLimit.value = std::max(1, numFrequencies);
+  localLowerLimit.isViable = true;
+
   intType edges = graph.numEdges;
-  intType maxFrequencies = graph.numEdges + 1; //lembrar do grafo linha
+
 
   //caso inicial:
-  //frequencies é um vetor de graph.numEdges x 0 elementos
+  //frequencies é um vetor de graph.numEdges arrays com apenas a frequência 0
   //frequencyIndex = 0
-  //bestSolution é um vetor de graph.numEdges x 0 elementos
-  //bestSolutionValue = graph.numEdges + 2, 1 a mais que o limite
+  //bestSolution é um vetor vazio
+  //bestSolutionValue = infinito
+
+  makeFrequencyGraph(graph, frequencies);
+
+  for (auto it: connectionsToDo)
+  {
+
+    if (checkConnection(graph),)
+
+  }
 
 
-  if ( frequencyIndex == maxFrequencies or localUpperLimit == localLowerLimit) //cheguei ao limite de frequências ou os limites se encontraram
+  if ( frequencyIndex == maxFrequencies or localUpperLimit.value == localLowerLimit.value or connectionsToDo.size() == 0) //cheguei ao limite de frequências ou os limites se encontraram
   {
 
     if ( isViable(graph, requestedConnections, frequencies) )
@@ -57,7 +100,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
                                        return lhs.size() < rhs.size();
                                      });
 
-      intType numFrequencies = *largestVectorIterator.size();
+      intType numFrequencies = *largestSetIterator.size();
 
       if (numFrequencies < bestSolutionValue)
       {
@@ -76,15 +119,18 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
   else
   {
+
+
     for (intType i = 0; i < edges; i++)
     {
 
       //não alocar essa frequência...
-      algorithm(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
+      //não-não-não-.. gera várias execuções com o mesmo estado. como cortar?
+      run(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
 
       //ou alocar
       frequencies[i].emplace(frequencyIndex);
-      algorithm(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
+      run(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
     }
 
   }
@@ -92,14 +138,8 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
 }
 
-bool BranchAndBound::isViable(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-   std::vector< std::unordered_set<intType> > & frequencies)
+Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<intType> > &frequencies)
 {
-  //viável significa que as frequências ligam os pares de vértices pedidos
-  //e que não há dois caminhos que compartilham arestas com a mesma frequência
-  //alocada
-
-  //transfere as frequências do vetor para o grafo
 
   intType edgeIndex = 0;
 
@@ -116,62 +156,93 @@ bool BranchAndBound::isViable(Graph &graph, std::vector< std::pair<intType, intT
 
   }
 
+  return graph;
+
+}
+
+//vê se uma conexão requisitada já foi atendida
+bool BranchAndBound::checkConnection(Graph graph, std::pair<intType, intType> connection, Path & path)
+{
+
+  intType source = connection.first;
+  intType destination = connection.second;
+
+  intType presentNode;
+  intType presentFrequency;
+  Path presentPath;
+  bool foundAPath;
+
+  //varre todos os vizinhos da origem
+  for (auto & neighbor: graph.list[source])
+  {
+
+    presentNode = neighbor.first;
+
+    for (auto & freq: neighbor.second) //unordered_set com frequências alocadas na aresta
+    {
+
+      presentFrequency = freq;
+      presentPath.nodeList.clear();
+      presentPath.nodeList.push_back(source);
+      presentPath.nodeList.push_back(presentNode);
+
+      if( findPath(graph, presentNode, destination, presentFrequency, presentPath) )
+      {
+        presentPath.frequency = presentFrequency;
+        foundAPath = true;
+        path = presentPath;
+        return true;
+      }
+
+    }
+
+  }
+
+  if(!foundAPath)
+  {
+    path.clear();
+    return false;
+  }
+
+}
+
+
+bool BranchAndBound::isViable(Graph graph, std::vector< std::pair<intType, intType> > & requestedConnections,
+   std::vector< std::unordered_set<intType> > & frequencies)
+{
+  //viável significa que as frequências ligam os pares de vértices pedidos
+  //e que não há dois caminhos que compartilham arestas com a mesma frequência
+  //alocada
+
+  //transfere as frequências do vetor para o grafo
+
+  Graph g = makeFrequencyGraph(graph, frequencies);
+
   vector<Path> pathList;
 
   //verifica se todos os pedidos de conexão foram atendidos
   for (auto & connection: requestedConnections)
   {
-    //realiza uma busca por profundidade pelo destino a partir da origem,
-    //apenas com arestas de uma frequência, e constroi os caminhos formados
-    intType source = connection.first;
-    intType destination = connection.second;
+    Path path;
 
-    intType presentNode;
-    intType presentFrequency;
-    Path presentPath;
-    bool foundAPath;
-
-    //varre todos os vizinhos da origem
-    for (auto & neighbor: graph.list[source])
+    if( checkConnection(g, connection, path) )
     {
-
-      presentNode = neighbor.first;
-
-      for (auto & freq: neighbor.second) //unordered_set com frequências alocadas na aresta
-      {
-
-        presentFrequency = freq;
-        presentPath.nodeList.clear();
-        presentPath.nodeList.push_back(source);
-        presentPath.nodeList.push_back(presentNode);
-
-        if( findPath(graph, presentNode, destination, presentFrequency, presentPath) )
-        {
-          presentPath.frequency = presentFrequency;
-          pathList.push_back(presentPath);
-          foundAPath = true;
-          break;
-        }
-
-      }
-
-      if(foundAPath) break;
-
+      pathList.push_back(path);
     }
 
-    if(!foundAPath) return false;
+    else return false;
 
-    //para todos os caminhos, verifica se existem arestas compartilhadas entre eles
-    //usando a mesma frequência para os dois caminhos
+  }
 
-    for(intType firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
+  //para todos os caminhos, verifica se existem arestas compartilhadas entre eles
+  //usando a mesma frequência para os dois caminhos
+
+  for(intType firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
+  {
+
+    for(intType secondIndex = firstIndex + 1; firstIndex < pathList.size(); secondIndex++)
     {
-
-      for(intType secondIndex = firstIndex + 1; firstIndex < pathList.size(); firstIndex++)
-      {
-        if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) ) return false;
-      }
-
+      if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) ) return false;
     }
 
   }
@@ -180,6 +251,7 @@ bool BranchAndBound::isViable(Graph &graph, std::vector< std::pair<intType, intT
 
 }
 
+//algoritmo recursivo para encontrar um caminho entre um vértice de origem e um vértice de destino
 bool BranchAndBound::findPath(Graph &graph, intType source, intType destination, intType frequency, Path &presentPath)
 {
 

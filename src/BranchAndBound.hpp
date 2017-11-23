@@ -8,16 +8,20 @@ class Limit
 
   public:
 
-    void calculate(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-      std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex, intType bestSolutionValue);
+    void calculate();
 
-    bool isViable;
-    intType limitValue;
+    bool isViable = false;
+    intType value;
 
 }
 
 class LowerLimit: public Limit{}
 class UpperLimit: public Limit{}
+class GlobalLowerLimit: public Limit{}
+class GlobalUpperLimit: public Limit{}
+class LocalLowerLimit: public Limit{}
+class LocalUpperLimit: public Limit{}
+class PathGlobalUpperLimit: public Limit{}
 
 class BranchAndBound
 {
@@ -40,7 +44,9 @@ class BranchAndBound
 
     bool promising(Graph &graph, )
 
-    static globalUpperLimit;
-    static globalLowerLimit;
+    static GlobalUpperLimit globalUpperLimit;
+    static GlobalLowerLimit globalLowerLimit;
+    static PathGlobalUpperLimit pathLimit;
+    static intType maxFrequencies;
 
 }
