@@ -14,7 +14,7 @@ class Limit
     void calculate();
 
     bool isViable = false;
-    intType value;
+    uint_fast32_t value;
 
 };
 
@@ -30,27 +30,29 @@ class BranchAndBound
 {
   public:
 
-    void run(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-      std::vector< std::unordered_set<intType> > frequencies, intType frequencyIndex,
-      std::vector< std::unordered_set<intType> > &bestSolution, intType & bestSolutionValue);
+    void run(Graph &graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections,
+       std::vector< std::unordered_set<uint_fast32_t> > frequencies, uint_fast32_t frequencyIndex,
+       std::vector< std::pair<uint_fast32_t, uint_fast32_t> > connectionsToDo);
 
-    bool isViable(Graph & graph, std::vector< std::pair<intType, intType> > & requestedConnections,
-       std::vector< std::unordered_set<intType> > & frequencies);
+    bool findPath(Graph &graph, uint_fast32_t source, uint_fast32_t destination, uint_fast32_t frequency, Path &presentPath);
 
-    bool findPath(Graph &graph, intType source, intType destination, intType frequency, Path &presentPath);
+    uint_fast32_t generateSuperiorLimit(Graph &graph);
 
-    intType generateSuperiorLimit(Graph &graph);
+    uint_fast32_t generateInferiorLimit(Graph &graph);
 
-    intType generateInferiorLimit(Graph &graph);
+    Graph makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<uint_fast32_t> > &frequencies);
 
-    bool promising(Graph &graph, )
+    bool checkConnection(Graph graph, std::pair<uint_fast32_t, uint_fast32_t> connection, Path & path);
+
+    void checkConnections(Graph graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections,
+       std::vector< std::unordered_set<uint_fast32_t> > & frequencies, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > &connectionsToDo);
 
     static GlobalUpperLimit globalUpperLimit;
     static GlobalLowerLimit globalLowerLimit;
     static PathGlobalUpperLimit pathLimit;
-    static intType maxFrequencies;
-    static std::vector< std::unordered_set<intType> > &bestSolution;
-    static intType &bestSolutionValue;
+    static uint_fast32_t maxFrequencies;
+    static std::vector< std::unordered_set<uint_fast32_t> > &bestSolution;
+    static uint_fast32_t &bestSolutionValue;
 
 };
 

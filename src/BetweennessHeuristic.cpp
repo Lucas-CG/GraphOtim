@@ -5,13 +5,13 @@
 #include <utility> //std::pair
 #include <stack> //std::stack
 
-intType BetweennessHeuristic::getMinDistanceVertex(std::vector<intType> vec)
+uint_fast32_t BetweennessHeuristic::getMinDistanceVertex(std::vector<uint_fast32_t> vec)
 {
 
-  intType minElement = INT_TYPE_MAX;
-  intType minElementIndex;
+  uint_fast32_t minElement = UINT_FAST32_MAX;
+  uint_fast32_t minElementIndex;
 
-  for(intType i = 0; i < vec.size(); i++)
+  for(uint_fast32_t i = 0; i < vec.size(); i++)
   {
     if(vec[i] < minElement)
     {
@@ -26,22 +26,22 @@ intType BetweennessHeuristic::getMinDistanceVertex(std::vector<intType> vec)
 
 }
 
-Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, intType source, intType destination)
+Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, uint_fast32_t source, uint_fast32_t destination)
 {
 
   //variáveis auxiliares
   Path shortestPath;
   bool foundAPath = false;
 
-  std::vector<intType> dist(graph.size(), INT_TYPE_MAX);
+  std::vector<uint_fast32_t> dist(graph.size(), UINT_FAST32_MAX);
   dist[source] = 0;
   //distância infinita para todos menos a raiz
 
   //considerando que "infinito" é o mesmo que sem predecessor
-  std::vector<intType> pred(graph.size(), INT_TYPE_MAX);
+  std::vector<uint_fast32_t> pred(graph.size(), UINT_FAST32_MAX);
 
   //S_ tem todos os vértices
-  std::unordered_set<intType> S_;
+  std::unordered_set<uint_fast32_t> S_;
 
 
   for(auto & it: graph.list)
@@ -51,7 +51,7 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, intType source, i
 
   while(!S.empty())
   {
-    intType u = getMinDistanceVertex(dist);
+    uint_fast32_t u = getMinDistanceVertex(dist);
 
     S_.erase(u);
 
@@ -82,9 +82,9 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, intType source, i
     //obtendo o caminho da origem ao destino
     std::stack stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
 
-    intType next = destination;
+    uint_fast32_t next = destination;
 
-    while(pred[next] != INT_TYPE_MAX)
+    while(pred[next] != UINT_FAST32_MAX)
     {
       stack.push(next);
       next = pred[next];
@@ -105,13 +105,13 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, intType source, i
 
 }
 
-bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections, intType & value)
+bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections, uint_fast32_t & value)
 {
 
   //chave: aresta(vértice1, vértice2), valor mapeado: betweenness
-  std::unordered_map< std::pair<intType, intType>, intType > edges;
+  std::map< std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > edges;
   bool isTherePath = true;
-  intType maxBetweenness = 0;
+  uint_fast32_t maxBetweenness = 0;
 
   for(auto & connection: requestedConnections)
   {
@@ -124,10 +124,10 @@ bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<intTyp
     else
     {
 
-      for(intType i = 1; i < path.nodeList.size(); i++)
+      for(uint_fast32_t i = 1; i < path.nodeList.size(); i++)
       {
-        std::pair<intType, intType> edge(path.nodeList[i - 1], path.nodeList[i]);
-        std::pair<intType, intType> reverseEdge(path.nodeList[i], path.nodeList[i - 1]);
+        std::pair<uint_fast32_t, uint_fast32_t> edge(path.nodeList[i - 1], path.nodeList[i]);
+        std::pair<uint_fast32_t, uint_fast32_t> reverseEdge(path.nodeList[i], path.nodeList[i - 1]);
         edges[edge]++;
         edges[reverseEdge]++;
       }
@@ -142,7 +142,7 @@ bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<intTyp
     if(edge.second > maxBetweenness) maxBetweenness = it.second;
   }
 
-value = maxBetweenness;
-return true;
+  value = maxBetweenness;
+  return true;
 
 }

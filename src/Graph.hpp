@@ -1,15 +1,12 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include <unordered_map> //std::unordered_map
+#include <map> //std::map
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 #include <cstdint> //uint_fast32_t
 #include <string> //std::string
-
-#define INT_TYPE_MAX UINT_FAST32_MAX
-#define INT_TYPE_MIN UINT_FAST32_MIN
-typedef uint_fast32_t intType;
+#include <vector> //std::vector
 
 template<typename Out>
 void split(const std::string &s, char delim, Out result);
@@ -19,8 +16,8 @@ class Path
 {
 
   public:
-    intType frequency;
-    std::vector<intType> nodeList;
+    uint_fast32_t frequency;
+    std::vector<uint_fast32_t> nodeList;
 
 
 };
@@ -36,16 +33,15 @@ class Graph
     //o grafo é representado como um array associativo
     //o primeiro elemento é um vértice, e o segundo elemento é um outro array associativo
     //com vizinhos do vértice e os números das frequências alocadas para as respectivas arestas
-    std::unordered_map< intType, std::unordered_map < intType, std::unordered_set<intType> > > list;
+    std::map< uint_fast32_t, std::map < uint_fast32_t, std::unordered_set<uint_fast32_t> > > list;
 
-    void addEdge(intType a, intType b, std::unordered_set<intType> frequencies);
-    void addFrequency(intType a, intType b, intType f);
-    void readFromFile(std::string fileName);
+    void addEdge(uint_fast32_t a, uint_fast32_t b, std::unordered_set<uint_fast32_t> frequencies);
+    void addFrequency(uint_fast32_t a, uint_fast32_t b, uint_fast32_t f);
 
-    intType numEdges = 0;
+    uint_fast32_t numEdges = 0;
 
-    //iterar sobre unordered_map:
-    //for (auto it: unordered_map_name){*it.algo...}
+    //iterar sobre map:
+    //for (auto it: map_name){*it.algo...}
 
     Graph();
 

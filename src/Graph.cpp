@@ -19,7 +19,7 @@ void split(const std::string &s, char delim, Out result)
 
 }
 
-void Graph::addEdge(intType a, intType b, std::unordered_set<intType> frequencies)
+void Graph::addEdge(uint_fast32_t a, uint_fast32_t b, std::unordered_set<uint_fast32_t> frequencies)
 {
 
   list[a][b] = frequencies;
@@ -29,7 +29,7 @@ void Graph::addEdge(intType a, intType b, std::unordered_set<intType> frequencie
 
 }
 
-void Graph::addFrequency(intType a, intType b, intType f)
+void Graph::addFrequency(uint_fast32_t a, uint_fast32_t b, uint_fast32_t f)
 {
 
   list[a][b].emplace(f);
@@ -37,65 +37,43 @@ void Graph::addFrequency(intType a, intType b, intType f)
 
 }
 
-void Graph::readFromFile(std::string fileName)
-{
-
-  std::ifstream inFile(fileName);
-  string line;
-
-  while ( std::getline(inFile, line) )
-  {
-
-    //cada linha corresponde a uma aresta
-    vector<string> nodes;
-    split( str, ' ', std::back_inserter(nodes) );
-
-    intType node1 = (intType)std::stoi(nodes[0]);
-    intType node2 = (intType)std::stoi(nodes[0]);
-
-    std::unordered_set<intType> emptySet;
-    addEdge(node1, node2, emptySet);
-
-  }
-
-}
 
 bool doPathsHaveCollision(Path &path1, Path &path2)
 {
 
   //o conjunto de arestas reúne um par (aresta, frequência)
   //uma aresta é um par de vértices
-  std::unordered_set< std::pair < std::pair<intType, intType>, intType > > path1Edges, path2Edges;
+  std::unordered_set< std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > > path1Edges, path2Edges;
 
   //recuperar as arestas dos dois caminhos
-  for(intType i = 0; i < path1.nodeList.size(); i++)
+  for(uint_fast32_t i = 0; i < path1.nodeList.size(); i++)
   {
 
     if( i + 1 < path1.nodeList.size() )
     {
-      std::pair<intType, intType> edge(path1.nodeList[i], path1.nodeList[i+1]);
-      std::pair<intType, intType> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
-      intType frequency = path1.frequency;
+      std::pair<uint_fast32_t, uint_fast32_t> edge(path1.nodeList[i], path1.nodeList[i+1]);
+      std::pair<uint_fast32_t, uint_fast32_t> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
+      uint_fast32_t frequency = path1.frequency;
 
-      std::pair < std::pair<intType, intType>, intType > edgeWithFrequency(edge, frequency);
-      std::pair < std::pair<intType, intType>, intType > reverseEdgeWithFrequency(reverseEdge, frequency);
+      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > edgeWithFrequency(edge, frequency);
+      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > reverseEdgeWithFrequency(reverseEdge, frequency);
       path1Edges.emplace(edgeWithFrequency);
       path1Edges.emplace(reverseEdgeWithFrequency);
     }
 
   }
 
-  for(intType i = 0; i < path2.nodeList.size(); i++)
+  for(uint_fast32_t i = 0; i < path2.nodeList.size(); i++)
   {
 
     if( i + 1 < path2.nodeList.size() )
     {
-      std::pair<intType, intType> edge(path2.nodeList[i], path2.nodeList[i+1]);
-      std::pair<intType, intType> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
-      intType frequency = path2.frequency;
+      std::pair<uint_fast32_t, uint_fast32_t> edge(path2.nodeList[i], path2.nodeList[i+1]);
+      std::pair<uint_fast32_t, uint_fast32_t> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
+      uint_fast32_t frequency = path2.frequency;
 
-      std::pair < std::pair<intType, intType>, intType > edgeWithFrequency(edge, frequency);
-      std::pair < std::pair<intType, intType>, intType > reverseEdgeWithFrequency(reverseEdge, frequency);
+      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > edgeWithFrequency(edge, frequency);
+      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > reverseEdgeWithFrequency(reverseEdge, frequency);
       path2Edges.emplace(edgeWithFrequency);
       path2Edges.emplace(reverseEdgeWithFrequency);
     }
@@ -106,7 +84,7 @@ bool doPathsHaveCollision(Path &path1, Path &path2)
   for(auto & it: path1Edges)
   {
     //encontrei uma aresta com mesmos vértices e mesma frequência
-    if(path2Edges.find(it) != path2Edges.end()){
+    if( path2Edges.find(it) != path2Edges.end() ){
       return true;
     }
   }
