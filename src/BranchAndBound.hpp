@@ -1,3 +1,6 @@
+#ifndef BRANCHANDBOUND_HPP
+#define BRANCHANDBOUND_HPP
+
 #include "Graph.hpp"
 #include <vector> //std::vector
 #include <unordered_set> //std::unordered_set
@@ -13,15 +16,15 @@ class Limit
     bool isViable = false;
     intType value;
 
-}
+};
 
-class LowerLimit: public Limit{}
-class UpperLimit: public Limit{}
-class GlobalLowerLimit: public Limit{}
-class GlobalUpperLimit: public Limit{}
-class LocalLowerLimit: public Limit{}
-class LocalUpperLimit: public Limit{}
-class PathGlobalUpperLimit: public Limit{}
+class LowerLimit: public Limit{};
+class UpperLimit: public Limit{};
+class GlobalLowerLimit: public Limit{};
+class GlobalUpperLimit: public Limit{};
+class LocalLowerLimit: public Limit{};
+class LocalUpperLimit: public Limit{};
+class PathGlobalUpperLimit: public Limit{};
 
 class BranchAndBound
 {
@@ -36,8 +39,6 @@ class BranchAndBound
 
     bool findPath(Graph &graph, intType source, intType destination, intType frequency, Path &presentPath);
 
-    bool doPathsHaveCollision(Path & path1, Path & path2);
-
     intType generateSuperiorLimit(Graph &graph);
 
     intType generateInferiorLimit(Graph &graph);
@@ -51,4 +52,6 @@ class BranchAndBound
     static std::vector< std::unordered_set<intType> > &bestSolution;
     static intType &bestSolutionValue;
 
-}
+};
+
+#endif

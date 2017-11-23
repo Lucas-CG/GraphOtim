@@ -1,9 +1,11 @@
+#ifndef GRAPH_HPP
+#define GRAPH_HPP
+
 #include <unordered_map> //std::unordered_map
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 #include <cstdint> //uint_fast32_t
 #include <string> //std::string
-#include <priority_queue> //std::priority_queue
 
 #define INT_TYPE_MAX UINT_FAST32_MAX
 #define INT_TYPE_MIN UINT_FAST32_MIN
@@ -12,6 +14,7 @@ typedef uint_fast32_t intType;
 template<typename Out>
 void split(const std::string &s, char delim, Out result);
 
+
 class Path
 {
 
@@ -19,7 +22,11 @@ class Path
     intType frequency;
     std::vector<intType> nodeList;
 
-}
+
+};
+
+bool doPathsHaveCollision(Path &path1, Path &path2);
+
 
 class Graph
 {
@@ -34,7 +41,6 @@ class Graph
     void addEdge(intType a, intType b, std::unordered_set<intType> frequencies);
     void addFrequency(intType a, intType b, intType f);
     void readFromFile(std::string fileName);
-    void print();
 
     intType numEdges = 0;
 
@@ -44,4 +50,6 @@ class Graph
     Graph();
 
 
-}
+};
+
+#endif

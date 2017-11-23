@@ -1,3 +1,6 @@
+#ifndef BETWEENNESSHEURISTIC_HPP
+#define BETWEENNESSHEURISTIC_HPP
+
 #include "Graph.hpp" //Graph, intType
 #include <utility> //std::pair
 #include <vector> //std::vector
@@ -14,4 +17,6 @@ class BetweennessHeuristic
     //falso se algum caminho não for encontrado
     bool calculate(Graph &graph, std::vector< std::pair<intType, intType> > & requestedConnections, intType & value);
 
-}
+};
+
+#endif

@@ -5,6 +5,7 @@
 #include <vector> //std::vector
 #include <algorithm> //std::max, std::min
 #include "BetweennessHeuristic.hpp"
+#include "Graph.hpp"
 
 //calcula a quantidade de frequências necessárias em um grafo linha
 //onde todas as possíveis combinações de vértices devem ter uma conexão
@@ -56,6 +57,11 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
     maxFrequencies = globalUpperLimit.value;
 
+    std::unordered_set<intType> startingFrequency;
+    startingFrequency.emplace(0);
+
+    for(intType i = 0; i < maxFrequencies; i++) frequencies.push_back(startingFrequency);
+
   }
 
   //coletando número de frequências alocadas(tamanho do maior vetor de frequências)
@@ -85,11 +91,6 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
   //poda por limitante
   if(localLowerLimit > globalUpperLimit) return;
 
-  //caso inicial:
-  //frequencies é um vetor de graph.numEdges arrays com apenas a frequência 0
-  //frequencyIndex = 0
-  //connectionsToDo = requestedConnections
-
   //verifica viabilidade
   checkConnections(graph. requestedConnections, frequencies, connectionsToDo);
 
@@ -116,15 +117,20 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
       if (numFrequencies < bestSolutionValue)
       {
         bestSolutionValue = numFrequencies;
+        bestSolution.clear();
+
+        if(bestSolutionValue < globalUpperLimit) globalUpperLimit = bestSolutionValue;
 
         for (intType i = 0; i < edges; i++)
         {
-          bestSolution[i] = frequencies[i];
+          bestSolution.push_back(frequencies[i]);
         }
 
       }
 
     }
+
+    else return;
 
   }
 
@@ -136,16 +142,14 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
     {
 
       //não alocar essa frequência...
-      //não-não-não-.. gera várias execuções com o mesmo estado. como cortar?
       run(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
 
-      //ou alocar
+      //...ou alocar
       frequencies[i].emplace(frequencyIndex);
       run(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
     }
 
   }
-
 
 }
 
@@ -301,62 +305,6 @@ bool BranchAndBound::findPath(Graph &graph, intType source, intType destination,
 
   //retorno false se não consegui encontrar o destino
   return foundAPath;
-
-
-}
-
-bool BranchAndBound::doPathsHaveCollision(Path &path1, Path &path2)
-{
-
-  //o conjunto de arestas reúne um par (aresta, frequência)
-  //uma aresta é um par de vértices
-  std::unordered_set< std::pair < std::pair<intType, intType>, intType > > path1Edges, path2Edges;
-
-  //recuperar as arestas dos dois caminhos
-  for(intType i = 0; i < path1.nodeList.size(); i++)
-  {
-
-    if( i + 1 < path1.nodeList.size() )
-    {
-      std::pair<intType, intType> edge(path1.nodeList[i], path1.nodeList[i+1]);
-      std::pair<intType, intType> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
-      intType frequency = path1.frequency;
-
-      std::pair < std::pair<intType, intType>, intType > edgeWithFrequency(edge, frequency);
-      std::pair < std::pair<intType, intType>, intType > reverseEdgeWithFrequency(reverseEdge, frequency);
-      path1Edges.emplace(edgeWithFrequency);
-      path1Edges.emplace(reverseEdgeWithFrequency);
-    }
-
-  }
-
-  for(intType i = 0; i < path2.nodeList.size(); i++)
-  {
-
-    if( i + 1 < path2.nodeList.size() )
-    {
-      std::pair<intType, intType> edge(path2.nodeList[i], path2.nodeList[i+1]);
-      std::pair<intType, intType> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
-      intType frequency = path2.frequency;
-
-      std::pair < std::pair<intType, intType>, intType > edgeWithFrequency(edge, frequency);
-      std::pair < std::pair<intType, intType>, intType > reverseEdgeWithFrequency(reverseEdge, frequency);
-      path2Edges.emplace(edgeWithFrequency);
-      path2Edges.emplace(reverseEdgeWithFrequency);
-    }
-
-  }
-
-  //comparar as arestas dos dois caminhos
-  for(auto & it: path1Edges)
-  {
-    //encontrei uma aresta com mesmos vértices e mesma frequência
-    if(path2Edges.find(it) != path2Edges.end()){
-      return true;
-    }
-  }
-
-  return false;
 
 
 }

@@ -59,3 +59,59 @@ void Graph::readFromFile(std::string fileName)
   }
 
 }
+
+bool doPathsHaveCollision(Path &path1, Path &path2)
+{
+
+  //o conjunto de arestas reúne um par (aresta, frequência)
+  //uma aresta é um par de vértices
+  std::unordered_set< std::pair < std::pair<intType, intType>, intType > > path1Edges, path2Edges;
+
+  //recuperar as arestas dos dois caminhos
+  for(intType i = 0; i < path1.nodeList.size(); i++)
+  {
+
+    if( i + 1 < path1.nodeList.size() )
+    {
+      std::pair<intType, intType> edge(path1.nodeList[i], path1.nodeList[i+1]);
+      std::pair<intType, intType> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
+      intType frequency = path1.frequency;
+
+      std::pair < std::pair<intType, intType>, intType > edgeWithFrequency(edge, frequency);
+      std::pair < std::pair<intType, intType>, intType > reverseEdgeWithFrequency(reverseEdge, frequency);
+      path1Edges.emplace(edgeWithFrequency);
+      path1Edges.emplace(reverseEdgeWithFrequency);
+    }
+
+  }
+
+  for(intType i = 0; i < path2.nodeList.size(); i++)
+  {
+
+    if( i + 1 < path2.nodeList.size() )
+    {
+      std::pair<intType, intType> edge(path2.nodeList[i], path2.nodeList[i+1]);
+      std::pair<intType, intType> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
+      intType frequency = path2.frequency;
+
+      std::pair < std::pair<intType, intType>, intType > edgeWithFrequency(edge, frequency);
+      std::pair < std::pair<intType, intType>, intType > reverseEdgeWithFrequency(reverseEdge, frequency);
+      path2Edges.emplace(edgeWithFrequency);
+      path2Edges.emplace(reverseEdgeWithFrequency);
+    }
+
+  }
+
+  //comparar as arestas dos dois caminhos
+  for(auto & it: path1Edges)
+  {
+    //encontrei uma aresta com mesmos vértices e mesma frequência
+    if(path2Edges.find(it) != path2Edges.end()){
+      return true;
+    }
+  }
+
+  return false;
+
+
+}
