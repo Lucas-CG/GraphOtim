@@ -5,6 +5,8 @@
 #include <string> //std::string
 #include <priority_queue> //std::priority_queue
 
+#define INT_TYPE_MAX UINT_FAST32_MAX
+#define INT_TYPE_MIN UINT_FAST32_MIN
 typedef uint_fast32_t intType;
 
 template<typename Out>
@@ -22,20 +24,17 @@ class Path
 class Graph
 {
 
-  private:
+  public:
 
     //o grafo é representado como um array associativo
     //o primeiro elemento é um vértice, e o segundo elemento é um outro array associativo
     //com vizinhos do vértice e os números das frequências alocadas para as respectivas arestas
     std::unordered_map< intType, std::unordered_map < intType, std::unordered_set<intType> > > list;
 
-  public:
-
     void addEdge(intType a, intType b, std::unordered_set<intType> frequencies);
     void addFrequency(intType a, intType b, intType f);
     void readFromFile(std::string fileName);
     void print();
-    std::priority_queue < std::vector<intType> > kShortestPaths(uint_fast32_t num_shortest_paths);
 
     intType numEdges = 0;
 

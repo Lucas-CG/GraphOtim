@@ -37,11 +37,12 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
    LocalLowerLimit localLowerLimit, LocalUpperLimit localUpperLimit)
 {
 
+
+  //primeira iteração
   if(frequencyIndex == 0)
   {
-
     pathLimit.calculate(graph);
-    globalUpperLimit.value = pathLimit.value;
+    globalUpperLimit.value = pathLimit.value; //pior caso: grafo linha
     globalUpperLimit.isViable = true;
     globalLowerLimit.value = 1; //melhor caso: grafo completo
     globalLowerLimit.isViable = true;
@@ -49,7 +50,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
   }
 
-  //coletando número de frequências alocadas(maior elemento do vetor + 1)
+  //coletando número de frequências alocadas(tamanho do maior vetor de frequências)
   auto largestFrequencyIterator = std::max_element(std::begin(frequencies),
                                  std::end(frequencies),
                                  [](const std::unordered_set<intType>& lhs,
@@ -60,7 +61,13 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<intType, intType> 
 
   intType numFrequencies = *largestFrequencyIterator.size();
 
-  localUpperLimit.value = globalUpperLimit.value;
+
+  //determinando o limite superior local
+
+  //menor valor entre o limite global e o valor da melhor solução encontrada até o momento + por quantas frequências falta iterar
+  localUpperLimit.value = std::max(globalUpperLimit.value, bestSolutionValue + ( (maxFrequencies - 1) - frequencyIndex ) );
+
+  //é aqui que tenho que ver se pulei demais
   localUpperLimit.isViable = globalUpperLimit.isViable;
 
   localLowerLimit.value = std::max(1, numFrequencies);
