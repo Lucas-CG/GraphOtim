@@ -81,10 +81,12 @@ bool doPathsHaveCollision(Path &path1, Path &path2)
   }
 
   //comparar as arestas dos dois caminhos
-  for(auto & it: path1Edges)
+  for(auto it: path1Edges)
+  //for(uint_fast32_t i = 0; i < path1Edges.size(); i++)
   {
     //encontrei uma aresta com mesmos vértices e mesma frequência
-    if( path2Edges.find(it) != path2Edges.end() ){
+    if( path2Edges.find(*it) != path2Edges.end() ){
+    //if(path2Edges.find(path1Edges[]) != path2Edges.end())
       return true;
     }
   }
