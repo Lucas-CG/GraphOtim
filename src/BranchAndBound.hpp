@@ -37,7 +37,7 @@ class BranchAndBound
 
     void run(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections,
        std::vector< std::unordered_set<int> > frequencies, int frequencyIndex,
-       std::vector< std::pair<int, int> > connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit);
+       int connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit);
 
     bool findPath(Graph &graph, int source, int destination, int frequency, Path &presentPath);
 
@@ -46,7 +46,7 @@ class BranchAndBound
     bool checkConnection(Graph & graph, std::pair<int, int> connection, Path & path);
 
     void checkConnections(Graph & graph, std::vector< std::pair<int, int> > & requestedConnections,
-       std::vector< std::unordered_set<int> > & frequencies, std::vector< std::pair<int, int> > &connectionsToDo);
+       std::vector< std::unordered_set<int> > & frequencies, int &connectionsToDo);
 
     GlobalUpperLimit globalUpperLimit;
     GlobalLowerLimit globalLowerLimit;

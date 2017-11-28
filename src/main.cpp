@@ -24,7 +24,7 @@ int main(int argc, char **argv)
   BranchAndBound bb;
   LocalUpperLimit localUpperLimit;
   LocalLowerLimit localLowerLimit;
-  std::vector< std::pair<int, int> > connectionsToDo;
+  int connectionsToDo = 0;
 
 
   BetweennessHeuristic bh;

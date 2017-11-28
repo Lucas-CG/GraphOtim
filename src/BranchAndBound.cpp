@@ -8,6 +8,9 @@
 #include "Graph.hpp"
 #include <climits> //INT_MAX
 #include <iostream>
+#include <map> //std::map
+#include <queue>
+
 
 //calcula a quantidade de frequências necessárias em um grafo linha
 //onde todas as possíveis combinações de vértices devem ter uma conexão
@@ -40,7 +43,7 @@ void PathGlobalUpperLimit::calculate(Graph & graph)
 
 void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections,
    std::vector< std::unordered_set<int> > frequencies, int frequencyIndex,
-   std::vector< std::pair<int, int> > connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit)
+   int connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit)
 {
 
   std::cout << "imprimindo grafo" << std::endl;
@@ -103,7 +106,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
 
   localLowerLimit.value = std::max(1, numFrequencies);
 
-  std::cout << "limite inferior local: " << localLowerLimit.value << std::endl;
+  std::cout << "limite inferior local: " <<updateToDo localLowerLimit.value << std::endl;
 
   localLowerLimit.isViable = true;
 
@@ -124,7 +127,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
 
   //menor valor entre o limite global e a soma entre quantas frequências já aloquei e quantas conexões ainda preciso fazer
   //maxFrequencies - 1 porque as frequências são indexadas começando-se de 0
-  int missingPathsLimitValue = numFrequencies + connectionsToDo.size();
+  int missingPathsLimitValue = numFrequencies + connectionsToDo;
   localUpperLimit.value = std::min(globalUpperLimit.value, missingPathsLimitValue);
 
   std::cout << "limite superior do que falta: " << missingPathsLimitValue << std::endl;
@@ -139,7 +142,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
     std::cout << "última iteração" << std::endl;
 
     //poda por inviabilidade -> só armazeno a solução se esse conjunto for vazio, ou seja, se for viável
-    if( connectionsToDo.empty() )
+    if( connectionsToDo == 0 )
     {
 
       std::cout << "todas as conexões foram feitas (solução viável encontrada)" << std::endl;
@@ -280,7 +283,7 @@ Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordere
 }
 
 //vê se uma conexão requisitada já foi atendida
-bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connection, Path & path)
+bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connection, std::vector<Path> & pathVector)
 {
 
   std::cout << "checkConnection" << std::endl;
@@ -301,7 +304,7 @@ bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connecti
 
     std::cout << graph.matrix[source][j].first << std::endl;
 
-    if(graph.matrix[source][j].first) //se é vizinho...
+    if(graph.matrix[source][j].first) //se for vizinho...
     {
 
       std::cout << j << " é vizinho de " << source << std::endl;
@@ -328,9 +331,7 @@ bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connecti
         {
           std::cout << "encontrei caminho!!!11ondeonzeee" << std::endl;
           presentPath.frequency = presentFrequency;
-          foundAPath = true;
-          path = presentPath;
-          return true;
+          pathVector.push_back(presentPath);
         }
 
       }
@@ -340,17 +341,18 @@ bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connecti
   }
 
   //não achei nada; o caminho retornado é vazio
-  if(!foundAPath)
+  if(pathVector.empty())
   {
     std::cout << "não achei nada" << std::endl;
-    path.nodeList.clear();
     return false;
   }
+
+  else return true;
 
 }
 
 void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int, int> > & requestedConnections,
-   std::vector< std::unordered_set<int> > & frequencies, std::vector< std::pair<int, int> > &connectionsToDo)
+   std::vector< std::unordered_set<int> > & frequencies, int &connectionsToDo)
 {
 
   //verifica viabilidade:
@@ -363,9 +365,10 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
   std::cout << "imprimindo grafo com frequências" << std::endl;
   g.print();
 
-  std::vector<Path> pathList;
-
-  std::vector< std::pair<int, int> > updateToDo;
+  //std::vector<Path> pathList;
+  //estrutura de dados para armazenar caminhos:
+  //armazena todos os caminhos possíveis para uma conexão requisitada
+  std::map< std::pair<int>, std::vector<Path> > pathList;
 
   std::cout << "verificando pedidos de conexão" << std::endl;
   //verifica se todos os pedidos de conexão foram "atendidos" - ainda não estou considerando colisões
@@ -374,13 +377,14 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
 
     std::cout << "Pedido de conexão (" << connection.first << ", " << connection.second << ")" << std::endl;
 
-    Path path;
+    std::vector<Path> pathVector;
 
-    if( checkConnection(g, connection, path) )
+    if( checkConnection(g, connection, pathVector) )
     {
       std::cout << "caminho encontrado! adicionando à lista" << std::endl;
       //achei um caminho pronto para a conexão, adiciono à lista para verificar se há colisõess
-      pathList.push_back(path);
+
+      pathList[connection] = pathVector;
     }
 
     //a conexão não foi atendida se não existe um caminho
@@ -395,36 +399,91 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
   //para todos os caminhos da lista, verifica se existem arestas compartilhadas entre eles
   //usando a mesma frequência para os dois caminhos
 
-  for(int firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
+  //verifica todas as possíveis combinações de caminhos, pegando 1 caminho por par por vez
+  //as colisões são verificadas par a par
+
+  //eu quero minimizar a quantidade de caminhos a fazer
+
+  std::vector< Path > minimalCollisionPaths;
+  int minCollisions = INT_MAX;
+
+  std::vector< Path > possiblePathCombination;
+  std::queue< std::vector<Path> > connectionCombinationQueue;
+  std::vector<Path> dummy;
+
+  connectionCombinationQueue.push(dummy);
+
+  //para todos os pares(chave, valor)...
+  //gerar todas as combinações possíveis
+  for(auto & it: pathList)
   {
 
-    for(int secondIndex = firstIndex + 1; secondIndex < pathList.size(); secondIndex++)
+    std::queue< std::vector<Path> > tempQueue;
+
+    while( !connectionCombinationQueue.empty() )
+    {
+      std::vector<Path> combination = connectionCombinationQueue.front();
+      connectionCombinationQueue.pop();
+
+      //põe nessa combinação todos os caminhos possíveis e os insere na fila temporária
+      //para todos os caminhos armazenados para o par it (chamo aqui de itt)...
+      for(auto & itt: it.second)
+      {
+        std::vector<Path> newCombination = combination;
+        newCombination.push_back(itt);
+        tempQueue.push(newCombination);
+      }
+
+    //troca o conteúdo da fila velha para a nova
+    std::swap(connectionCombinationQueue, tempQueue);
+
+    //repetindo-se isso para todos os pares de conexões, gera-se todas as combinações possíveis de caminhos
+
+    }
+
+
+  }
+
+  //esvazio a pilha com todas as combinações e busco a com o menor número de colisões par a par
+  while( !connectionCombinationQueue.empty() )
+  {
+
+    std::vector<Path> finalCombination = connectionCombinationQueue.front();
+    connectionCombinationQueue.pop();
+
+    //com a combinação que peguei, analiso as colisões par a par
+
+    int numCollisions = 0;
+
+    for(int firstIndex = 0; firstIndex < finalCombination.size(); firstIndex++)
     {
 
-      std::cout << "Caminho " << firstIndex << "X Caminho " << secondIndex << std::endl;
-
-      if( doPathsHaveFrequencyCollision( pathList[firstIndex], pathList[secondIndex] ) )
+      for(int secondIndex = firstIndex + 1; secondIndex < finalCombination.size(). secondIndex++)
       {
 
-        std::cout << "tem colisão! pondo as duas conexões no TODO" << std::endl;
+        std::cout << "Caminho " << firstIndex << "X Caminho " << secondIndex << std::endl;
+        if( doPathsHaveFrequencyCollision( finalCombination[firstIndex], finalCombination[secondIndex] ) )
+        {
 
-        //recupera as conexões formadas pelos dois caminhos
-        std::pair<int, int> firstConnection(pathList[firstIndex].nodeList[0], pathList[firstIndex].nodeList[pathList[firstIndex].nodeList.size() - 1] );
-        std::pair<int, int> secondConnection(pathList[secondIndex].nodeList[0], pathList[secondIndex].nodeList[pathList[secondIndex].nodeList.size() - 1] );
+          std::cout << "tem colisão! somando + 1 ao número de colisões" << std::endl;
+          numCollisions++;
 
-
-        //nenhuma das conexões foi atendida se ambas colidem
-        updateToDo.push_back(firstConnection);
-        updateToDo.push_back(secondConnection);
+        }
 
       }
 
     }
 
+    if(numCollisions < minCollisions)
+    {
+      minCollisions = numCollisions;
+      minimalCollisionPaths.clear();
+      minimalCollisionPaths = finalCombination;
+    }
+
   }
 
-  connectionsToDo.clear();
-  connectionsToDo = updateToDo;
+  connectionsToDo = minCollisions;
 
 }
 
