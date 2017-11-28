@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 
 
   std::vector< std::pair<int, int> > requestedConnections;
-  Graph graph = generateInstance1(requestedConnections);
+  Graph graph = generateInstance2(requestedConnections);
 
 
 

@@ -5,6 +5,7 @@
 #include <vector> //std::vector
 #include <algorithm> //std::max, std::min
 #include "BetweennessHeuristic.hpp"
+#include "SplittingHeuristic.hpp"
 #include "Graph.hpp"
 #include <climits> //INT_MAX
 #include <iostream>
@@ -64,9 +65,12 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
     int betweennessLimitValue = btwn.calculate(graph, requestedConnections);
     if(betweennessLimitValue == -1) return; //problema inviável (não existe caminho para alguma das conexões)
 
+    SplittingHeuristic spt;
+    int splittingLimitValue = spt.calculate(graph, requestedConnections);
+
     //std::cout << "valor pelo btwn: " << betweennessLimitValue << std::endl;
 
-    globalUpperLimit.value = std::min(pathLimit.value, betweennessLimitValue);
+    globalUpperLimit.value = std::min(splittingLimitValue, betweennessLimitValue);
 
     //std::cout << "Limite superior global: " << globalUpperLimit.value << std::endl;
 
