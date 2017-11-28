@@ -5,14 +5,15 @@
 #include <utility> //std::pair
 #include <stack> //std::stack
 
-uint_fast32_t BetweennessHeuristic::getMinDistanceVertex(std::vector<uint_fast32_t> vec)
+int BetweennessHeuristic::getMinDistanceVertex(std::vector<int> vec)
 {
 
-  uint_fast32_t minElement = UINT_FAST32_MAX;
-  uint_fast32_t minElementIndex;
+  int minElement = INT_MAX;
+  int minElementIndex;
 
-  for(uint_fast32_t i = 0; i < vec.size(); i++)
+  for(int i = 0; i < vec.size(); i++)
   {
+
     if(vec[i] < minElement)
     {
       minElement = vec[i];
@@ -26,32 +27,32 @@ uint_fast32_t BetweennessHeuristic::getMinDistanceVertex(std::vector<uint_fast32
 
 }
 
-Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, uint_fast32_t source, uint_fast32_t destination)
+Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, int source, int destination)
 {
 
   //variáveis auxiliares
   Path shortestPath;
   bool foundAPath = false;
 
-  std::vector<uint_fast32_t> dist(graph.size(), UINT_FAST32_MAX);
+  std::vector<int> dist(graph.numVertices, INT_MAX);
   dist[source] = 0;
   //distância infinita para todos menos a raiz
 
-  //considerando que "infinito" é o mesmo que sem predecessor
-  std::vector<uint_fast32_t> pred(graph.size(), UINT_FAST32_MAX);
+  //-1 = sem predecessor
+  std::vector<int> pred(graph.numVertices, -1);
 
   //S_ tem todos os vértices
-  std::unordered_set<uint_fast32_t> S_;
+  std::unordered_set<int> S_;
 
 
-  for(auto & it: graph.list)
+  for(int i = 0; i < graph.numVertices; i++)
   {
-    S_.emplace(it.first);
+    S_.emplace(i);
   }
 
-  while(!S.empty())
+  while(!S_.empty())
   {
-    uint_fast32_t u = getMinDistanceVertex(dist);
+    int u = getMinDistanceVertex(dist);
 
     S_.erase(u);
 
@@ -63,13 +64,14 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, uint_fast32_t sou
     }
 
     //para todo vértice adjacente a u
-    for (auto & it: graph[u]) //.first retorna o vizinho
+    for (int v = 0; v < graph.numVertices; v++)
     {
 
-      //se v pertence a S_ e a distância de v é maior que a distância de u + 1 (aresta unitária)
-      if(S_.find(*it.first) != S_.end() && dist[*it.first] > dist[u] + 1)
+      //se v é diferente de u, v é adjacente a u, v pertence a S_
+      //e a distância de v é maior que a distância de u + 1 (aresta unitária)
+      if(v != u && graph.matrix[u][v].first == true && S_.find(v) != S_.end() && dist[v] > dist[u] + 1)
       {
-        dist[*it.first] = dist[u] + 1;
+        dist[v] = dist[u] + 1;
         pred[v] = u;
       }
 
@@ -80,11 +82,11 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, uint_fast32_t sou
   if(foundAPath)
   {
     //obtendo o caminho da origem ao destino
-    std::stack stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
+    std::stack<int> stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
 
-    uint_fast32_t next = destination;
+    int next = destination;
 
-    while(pred[next] != UINT_FAST32_MAX)
+    while(pred[next] != -1)
     {
       stack.push(next);
       next = pred[next];
@@ -105,13 +107,15 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, uint_fast32_t sou
 
 }
 
-bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections, uint_fast32_t & value)
+
+//retorna -1 se der erro (betweenness é sempre positiva)
+int BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections)
 {
 
   //chave: aresta(vértice1, vértice2), valor mapeado: betweenness
-  std::map< std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > edges;
+  std::map< std::pair<int, int>, int > edges;
   bool isTherePath = true;
-  uint_fast32_t maxBetweenness = 0;
+  int maxBetweenness = 0;
 
   for(auto & connection: requestedConnections)
   {
@@ -119,15 +123,18 @@ bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<uint_f
     Path path = dijkstraForBetweenness(graph, connection.first, connection.second);
     isTherePath = !path.nodeList.empty();
 
-    if(!isTherePath) return false;
+    if(!isTherePath) return -1;
 
     else
     {
 
-      for(uint_fast32_t i = 1; i < path.nodeList.size(); i++)
+      for(int i = 1; i < path.nodeList.size(); i++)
       {
-        std::pair<uint_fast32_t, uint_fast32_t> edge(path.nodeList[i - 1], path.nodeList[i]);
-        std::pair<uint_fast32_t, uint_fast32_t> reverseEdge(path.nodeList[i], path.nodeList[i - 1]);
+        std::pair<int, int> edge(path.nodeList[i - 1], path.nodeList[i]);
+        std::pair<int, int> reverseEdge(path.nodeList[i], path.nodeList[i - 1]);
+
+        //soma 1 à betweenness da aresta no mapa;
+        //se a aresta ainda não está no mapa, ela é inserida automaticamente
         edges[edge]++;
         edges[reverseEdge]++;
       }
@@ -142,7 +149,6 @@ bool BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<uint_f
     if(edge.second > maxBetweenness) maxBetweenness = it.second;
   }
 
-  value = maxBetweenness;
-  return true;
+  return maxBetweenness;
 
 }

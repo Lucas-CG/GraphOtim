@@ -19,21 +19,38 @@ void split(const std::string &s, char delim, Out result)
 
 }
 
-void Graph::addEdge(uint_fast32_t a, uint_fast32_t b, std::unordered_set<uint_fast32_t> frequencies)
+Graph::Graph(int size)
 {
 
-  list[a][b] = frequencies;
-  list[b][a] = frequencies;
+  numVertices = size;
+
+  std::unordered_set nullFreqs;
+
+  std::pair<bool, std::unordered_set<int> > pair(false, nullFreqs);
+
+  std::vector< std::pair< bool, std::unordered_set<int> > > pairVector(size, pair);
+
+  std::vector< std::vector< std::pair< bool, std::unordered_set<int> > > > mat(size, pairVector);
+
+  matrix = mat;
+
+}
+
+void Graph::addEdge(int a, int b)
+{
+
+  matrix[a][b].first = true;
+  matrix[b][a].first = true;
 
   numEdges++;
 
 }
 
-void Graph::addFrequency(uint_fast32_t a, uint_fast32_t b, uint_fast32_t f)
+void Graph::addFrequency(int a, int b, int f)
 {
 
-  list[a][b].emplace(f);
-  list[b][a].emplace(f);
+  matrix[a][b].second.emplace(f);
+  matrix[b][a].second.emplace(f);
 
 }
 
@@ -43,55 +60,58 @@ bool doPathsHaveCollision(Path &path1, Path &path2)
 
   //o conjunto de arestas reúne um par (aresta, frequência)
   //uma aresta é um par de vértices
-  std::unordered_set< std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > > path1Edges, path2Edges;
+  std::vector< std::pair<int, int> > path1Edges, path2Edges;
 
   //recuperar as arestas dos dois caminhos
-  for(uint_fast32_t i = 0; i < path1.nodeList.size(); i++)
+  for(int i = 0; i < path1.nodeList.size(); i++)
   {
 
     if( i + 1 < path1.nodeList.size() )
     {
-      std::pair<uint_fast32_t, uint_fast32_t> edge(path1.nodeList[i], path1.nodeList[i+1]);
-      std::pair<uint_fast32_t, uint_fast32_t> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
-      uint_fast32_t frequency = path1.frequency;
+      std::pair<int, int> edge(path1.nodeList[i], path1.nodeList[i+1]);
+      std::pair<int, int> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
 
-      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > edgeWithFrequency(edge, frequency);
-      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > reverseEdgeWithFrequency(reverseEdge, frequency);
-      path1Edges.emplace(edgeWithFrequency);
-      path1Edges.emplace(reverseEdgeWithFrequency);
+      path1Edges.emplace(edge);
+      path1Edges.emplace(reverseEdge);
     }
 
   }
 
-  for(uint_fast32_t i = 0; i < path2.nodeList.size(); i++)
+  for(int i = 0; i < path2.nodeList.size(); i++)
   {
 
     if( i + 1 < path2.nodeList.size() )
     {
-      std::pair<uint_fast32_t, uint_fast32_t> edge(path2.nodeList[i], path2.nodeList[i+1]);
-      std::pair<uint_fast32_t, uint_fast32_t> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
-      uint_fast32_t frequency = path2.frequency;
+      std::pair<int, int> edge(path2.nodeList[i], path2.nodeList[i+1]);
+      std::pair<int, int> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
 
-      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > edgeWithFrequency(edge, frequency);
-      std::pair < std::pair<uint_fast32_t, uint_fast32_t>, uint_fast32_t > reverseEdgeWithFrequency(reverseEdge, frequency);
-      path2Edges.emplace(edgeWithFrequency);
-      path2Edges.emplace(reverseEdgeWithFrequency);
+      path2Edges.emplace(edge);
+      path2Edges.emplace(reverseEdge);
     }
 
   }
 
   //comparar as arestas dos dois caminhos
-  for(auto it: path1Edges)
-  //for(uint_fast32_t i = 0; i < path1Edges.size(); i++)
+  for(auto & it: path1Edges)
   {
-    //encontrei uma aresta com mesmos vértices e mesma frequência
-    if( path2Edges.find(*it) != path2Edges.end() ){
-    //if(path2Edges.find(path1Edges[]) != path2Edges.end())
-      return true;
+
+    for(auto & it2: path2Edges)
+    {
+      if(it1 == it2) return true;
     }
+
   }
 
   return false;
 
+
+}
+
+bool doPathsHaveFrequencyCollision(Path &path1, Path &path2)
+{
+
+  if(path1.frequency != path2.frequency) return false;
+
+  else return doPathsHaveCollision(path1, path2);
 
 }

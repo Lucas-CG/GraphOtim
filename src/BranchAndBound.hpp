@@ -14,7 +14,7 @@ class Limit
     void calculate();
 
     bool isViable = false;
-    uint_fast32_t value;
+    int value;
 
 };
 
@@ -30,29 +30,25 @@ class BranchAndBound
 {
   public:
 
-    void run(Graph &graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections,
-       std::vector< std::unordered_set<uint_fast32_t> > frequencies, uint_fast32_t frequencyIndex,
-       std::vector< std::pair<uint_fast32_t, uint_fast32_t> > connectionsToDo);
+    void run(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections,
+       std::vector< std::unordered_set<int> > frequencies, int frequencyIndex,
+       std::vector< std::pair<int, int> > connectionsToDo);
 
-    bool findPath(Graph &graph, uint_fast32_t source, uint_fast32_t destination, uint_fast32_t frequency, Path &presentPath);
+    bool findPath(Graph &graph, int source, int destination, int frequency, Path &presentPath);
 
-    uint_fast32_t generateSuperiorLimit(Graph &graph);
+    Graph makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<int> > &frequencies);
 
-    uint_fast32_t generateInferiorLimit(Graph &graph);
+    bool checkConnection(Graph graph, std::pair<int, int> connection, Path & path);
 
-    Graph makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<uint_fast32_t> > &frequencies);
-
-    bool checkConnection(Graph graph, std::pair<uint_fast32_t, uint_fast32_t> connection, Path & path);
-
-    void checkConnections(Graph graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections,
-       std::vector< std::unordered_set<uint_fast32_t> > & frequencies, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > &connectionsToDo);
+    void checkConnections(Graph graph, std::vector< std::pair<int, int> > & requestedConnections,
+       std::vector< std::unordered_set<int> > & frequencies, std::vector< std::pair<int, int> > &connectionsToDo);
 
     static GlobalUpperLimit globalUpperLimit;
     static GlobalLowerLimit globalLowerLimit;
     static PathGlobalUpperLimit pathLimit;
-    static uint_fast32_t maxFrequencies;
-    static std::vector< std::unordered_set<uint_fast32_t> > &bestSolution;
-    static uint_fast32_t &bestSolutionValue;
+    static int maxFrequencies;
+    static std::vector< std::unordered_set<int> > &bestSolution;
+    static int &bestSolutionValue;
 
 };
 

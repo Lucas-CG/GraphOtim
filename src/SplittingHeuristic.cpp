@@ -1,16 +1,19 @@
 #include "SplittingHeuristic.hpp"
-#include <map> //std::map
 #include <queue> //std::priority_queue
 #include <stack> //std::stack
+#include <utility> //std::pair
+#include <vector> //std::vector
+#include <climits> //INT_MAX
 
-uint_fast32_t SplittingHeuristic::getMinDistanceVertex(std::vector<uint_fast32_t> vec)
+int SplittingHeuristic::getMinDistanceVertex(std::vector<int> vec)
 {
 
-  uint_fast32_t minElement = UINT_FAST32_MAX;
-  uint_fast32_t minElementIndex;
+  int minElement = INT_MAX;
+  int minElementIndex;
 
-  for(uint_fast32_t i = 0; i < vec.size(); i++)
+  for(int i = 0; i < vec.size(); i++)
   {
+    
     if(vec[i] < minElement)
     {
       minElement = vec[i];
@@ -24,32 +27,32 @@ uint_fast32_t SplittingHeuristic::getMinDistanceVertex(std::vector<uint_fast32_t
 
 }
 
-Path SplittingHeuristic::dijkstraForSplitting(Graph graph, uint_fast32_t source, uint_fast32_t destination)
+Path SplittingHeuristic::dijkstraForSplitting(Graph graph, int source, int destination)
 {
 
   //variáveis auxiliares
   Path shortestPath;
   bool foundAPath = false;
 
-  std::vector<uint_fast32_t> dist(graph.list.size(), UINT_FAST32_MAX);
+  std::vector<int> dist(graph.numVertices, INT_MAX);
   dist[source] = 0;
   //distância infinita para todos menos a raiz
 
-  //considerando que "infinito" é o mesmo que sem predecessor
-  std::vector<uint_fast32_t> pred(graph.list.size(), UINT_FAST32_MAX);
+  //-1 = sem predecessor
+  std::vector<int> pred(graph.numVertices, -1);
 
   //S_ tem todos os vértices
-  std::unordered_set<uint_fast32_t> S_;
+  std::unordered_set<int> S_;
 
 
-  for(auto & it: graph.list)
+  for(int i = 0; i < graph.numVertices; i++)
   {
-    S_.emplace(it.first);
+    S_.emplace(i);
   }
 
   while(!S_.empty())
   {
-    uint_fast32_t u = getMinDistanceVertex(dist);
+    int u = getMinDistanceVertex(dist);
 
     S_.erase(u);
 
@@ -61,11 +64,12 @@ Path SplittingHeuristic::dijkstraForSplitting(Graph graph, uint_fast32_t source,
     }
 
     //para todo vértice adjacente a u
-    for (int v = 0; v < graph.list[u].size(); v++) //.first retorna o vizinho
+    for (int v = 0; v < graph.numVertices; v++)
     {
 
-      //se v pertence a S_ e a distância de v é maior que a distância de u + 1 (aresta unitária)
-      if(S_.find(v) != S_.end() && dist[v] > dist[u] + 1)
+      //se v é diferente de u, v é adjacente a u, v pertence a S_
+      //e a distância de v é maior que a distância de u + 1 (aresta unitária)
+      if(v != u && graph.matrix[u][v].first == true && S_.find(v) != S_.end() && dist[v] > dist[u] + 1)
       {
         dist[v] = dist[u] + 1;
         pred[v] = u;
@@ -78,11 +82,11 @@ Path SplittingHeuristic::dijkstraForSplitting(Graph graph, uint_fast32_t source,
   if(foundAPath)
   {
     //obtendo o caminho da origem ao destino
-    std::stack<uint_fast32_t> stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
+    std::stack<int> stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
 
-    uint_fast32_t next = destination;
+    int next = destination;
 
-    while(pred[next] != UINT_FAST32_MAX)
+    while(pred[next] != -1)
     {
       stack.push(next);
       next = pred[next];
@@ -103,7 +107,9 @@ Path SplittingHeuristic::dijkstraForSplitting(Graph graph, uint_fast32_t source,
 
 }
 
-std::vector<Path> SplittingHeuristic::generateShortestPathsForRequestedConnections(Graph graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections)
+//gera os caminhos mínimos para todas as conexões pedidas
+//retorna um vetor vazio se alguma conexão não puder ser feita
+std::vector<Path> SplittingHeuristic::generateShortestPathsForRequestedConnections(Graph graph, std::vector< std::pair<int, int> > & requestedConnections)
 {
   bool isTherePath = true;
   std::vector<Path> pathList;
@@ -134,23 +140,24 @@ std::vector<Path> SplittingHeuristic::generateShortestPathsForRequestedConnectio
 Graph SplittingHeuristic::generateCollisionGraph(Graph graph, std::vector<Path> pathList)
 {
 
-  Graph collisionGraph;
+  Graph collisionGraph( pathList.size() );
 
 
   //para todos os caminhos, verifica se existem arestas compartilhadas entre eles
-  //usando a mesma frequência para os dois caminhos
+  //se existirem, é necessário separá-los alocando uma frequência para cada um
+  //isso é representado com uma aresta entre dois nós, cada um representando um caminho,
+  //sendo o grafo gerado usado em um algoritmo de coloração
 
-  for(uint_fast32_t firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
+  for(int firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
   {
 
-    for(uint_fast32_t secondIndex = firstIndex + 1; firstIndex < pathList.size(); secondIndex++)
+    for(int secondIndex = firstIndex + 1; firstIndex < pathList.size(); secondIndex++)
     {
 
       if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) )
       {
 
-        std::unordered_set<uint_fast32_t> dummy;
-        collisionGraph.addEdge(firstIndex, secondIndex, dummy);
+        collisionGraph.addEdge(firstIndex, secondIndex);
 
       }
 
@@ -165,27 +172,38 @@ Graph SplittingHeuristic::generateCollisionGraph(Graph graph, std::vector<Path> 
 
 
 
-uint_fast32_t SplittingHeuristic::greedyColoring(Graph collisionGraph)
+int SplittingHeuristic::greedyColoring(Graph collisionGraph)
 {
 
   //ideia:
   //priorizar pelo grau
   //retorno: número de cores
 
-  uint_fast32_t numColors;
+  int numColors;
 
-  std::vector< std::vector<uint_fast32_t> > colorArrangement;
+  std::vector< std::vector<int> > colorArrangement;
 
-  std::priority_queue< std::pair<uint_fast32_t, uint_fast32_t>, std::vector< std::pair<uint_fast32_t, uint_fast32_t> >, CompareDegrees > pq;
+  std::priority_queue< std::pair<int, int>, std::vector< std::pair<int, int> >, CompareDegrees > pq;
 
-  for(uint_fast32_t i = 0; i < collisionGraph.list.size(); i++)
+  //calcula o grau de todos os vértices e adiciona os pares (vértice, grau) à fila de prioridade
+
+  for(int i = 0; i < collisionGraph.numVertices; i++)
   {
+
+    int degree = 0;
+
+    for(int j = 0; j < collisionGraph.numVertices; j++)
+    {
+      //existe aresta entre i e j?
+      if(collisionGraph.matrix[i][j].first) degree++;
+    }
     //(número do vértice, grau)
-    std::pair<uint_fast32_t, uint_fast32_t> vertex( i, collisionGraph.list[i].size() );
+    std::pair<int, int> vertex(i, degree);
+
     pq.emplace(vertex);
   }
 
-  std::pair<uint_fast32_t, uint_fast32_t> nextVertex;
+  std::pair<int, int> nextVertex;
 
   while( !pq.empty() ) {
 
@@ -194,27 +212,26 @@ uint_fast32_t SplittingHeuristic::greedyColoring(Graph collisionGraph)
 
     if( colorArrangement.empty() )
     {
-      std::vector<uint_fast32_t> newColor;
+      std::vector<int> newColor;
 
       //nextVertex.first é o índice do vértice
       newColor.push_back(nextVertex.first);
+
+      colorArrangement.push_back(newColor);
     }
 
     else
     {
         for (auto & color: colorArrangement)
         {
-          for (uint_fast32_t i = 0; i < color.size(); i++)
+          for (int i = 0; i < color.size(); i++)
           {
             //se for vizinho de quem eu quero inserir, não posso incluir na mesma cor
-            if(collisionGraph.list[nextVertex.first].count(color[i]) == 0)
-            {
-              if(i == color.size() - 1) color.push_back(nextVertex.first);
-              else continue;
-            }
 
-            else break;
+            if(nextVertex.first == color[i]) break;
 
+            if(i == color.size() - 1) color.push_back(nextVertex.first);
+            else continue;
           }
 
         }
@@ -229,7 +246,7 @@ uint_fast32_t SplittingHeuristic::greedyColoring(Graph collisionGraph)
 
 }
 
-uint_fast32_t SplittingHeuristic::calculate(Graph graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections){
+int SplittingHeuristic::calculate(Graph graph, std::vector< std::pair<int, int> > & requestedConnections){
 
   std::vector<Path> pathList = generateShortestPathsForRequestedConnections(graph, requestedConnections);
   Graph collisionGraph = generateCollisionGraph(graph, pathList);

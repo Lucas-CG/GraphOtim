@@ -4,7 +4,7 @@
 #include <map> //std::map
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
-#include <cstdint> //uint_fast32_t
+#include <cstdint> //int
 #include <string> //std::string
 #include <vector> //std::vector
 
@@ -16,13 +16,14 @@ class Path
 {
 
   public:
-    uint_fast32_t frequency;
-    std::vector<uint_fast32_t> nodeList;
+    int frequency;
+    std::vector<int> nodeList;
 
 
 };
 
 bool doPathsHaveCollision(Path &path1, Path &path2);
+bool doPathsHaveFrequencyCollision(Path &path1, Path &path2);
 
 
 class Graph
@@ -33,17 +34,20 @@ class Graph
     //o grafo é representado como um array associativo
     //o primeiro elemento é um vértice, e o segundo elemento é um outro array associativo
     //com vizinhos do vértice e os números das frequências alocadas para as respectivas arestas
-    std::map< uint_fast32_t, std::map < uint_fast32_t, std::unordered_set<uint_fast32_t> > > list;
+    //std::map< int, std::map < int, std::unordered_set<int> > > list;
 
-    void addEdge(uint_fast32_t a, uint_fast32_t b, std::unordered_set<uint_fast32_t> frequencies);
-    void addFrequency(uint_fast32_t a, uint_fast32_t b, uint_fast32_t f);
+    std::vector< std::vector< std::pair< bool, std::unordered_set<int> > > > matrix;
 
-    uint_fast32_t numEdges = 0;
+    void addEdge(int a, int b);
+    void addFrequency(int a, int b, int f);
+
+    int numEdges = 0;
+    int numVertices = 0;
 
     //iterar sobre map:
     //for (auto it: map_name){*it.algo...}
 
-    Graph();
+    Graph(int size);
 
 
 };

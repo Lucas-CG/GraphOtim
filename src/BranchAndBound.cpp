@@ -13,18 +13,18 @@
 void PathGlobalUpperLimit::calculate(Graph & graph)
 {
 
-  uint_fast32_t numPathEdges = graph.list.size() - 1
+  int numPathEdges = graph.numVertices - 1
 
-  std::vector<uint_fast32_t> pathEdges(numPathEdges, 0);
+  std::vector<int> pathEdges(numPathEdges, 0);
 
-  for (uint_fast32_t i = 0; i < numPathEdges; i++)
+  for (int i = 0; i < numPathEdges; i++)
   {
 
     pathEdges[i] = (numPathEdges - i) * (i + 1);
 
   }
 
-  uint_fast32_t maxValue = 0;
+  int maxValue = 0;
 
   for (auto & it: pathEdges){ if(it > maxValue) maxValue = it; }
 
@@ -33,9 +33,9 @@ void PathGlobalUpperLimit::calculate(Graph & graph)
 
 }
 
-void BranchAndBound::run(Graph &graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections,
-   std::vector< std::unordered_set<uint_fast32_t> > frequencies, uint_fast32_t frequencyIndex,
-   std::vector< std::pair<uint_fast32_t, uint_fast32_t> > connectionsToDo)
+void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections,
+   std::vector< std::unordered_set<int> > frequencies, int frequencyIndex,
+   std::vector< std::pair<int, int> > connectionsToDo)
 {
 
 
@@ -45,9 +45,8 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<uint_fast32_t, uin
     pathLimit.calculate(graph);
 
     BetweennessHeuristic btwn;
-    uint_fast32_t betweennessLimitValue;
-    betweennessViable = btwn.calculate(graph, requestedConnections, betweennessLimitValue);
-    if(!betweennessViable) return; //problema inviável (não existe caminho para alguma das conexões?)
+    int betweennessLimitValue = btwn.calculate(graph, requestedConnections);
+    if(betweennessLimitValue == -1) return; //problema inviável (não existe caminho para alguma das conexões)
 
     globalUpperLimit.value = std::min(pathLimit.value, betweennessLimitValue);
     globalUpperLimit.isViable = true;
@@ -57,28 +56,30 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<uint_fast32_t, uin
 
     maxFrequencies = globalUpperLimit.value;
 
-    std::unordered_set<uint_fast32_t> startingFrequency;
-    startingFrequency.emplace(0);
+    std::unordered_set<int> startingFrequencies;
+    startingFrequencies.emplace(0);
 
-    for(uint_fast32_t i = 0; i < maxFrequencies; i++) frequencies.push_back(startingFrequency);
+    //todas as arestas recebem 1 frequência (esse é o mínimo para conectar todos)
+    for(int i = 0; i < graph.numEdges; i++) frequencies.push_back(startingFrequencies);
 
   }
 
-  //coletando número de frequências alocadas(tamanho do maior vetor de frequências)
+  //coletando maior número de frequências alocadas(tamanho do maior vetor de frequências)
   auto largestFrequencyIterator = std::max_element(std::begin(frequencies),
                                  std::end(frequencies),
-                                 [](const std::unordered_set<uint_fast32_t>& lhs,
-                                    const std::unordered_set<uint_fast32_t>& rhs)
+                                 [](const std::unordered_set<int>& lhs,
+                                    const std::unordered_set<int>& rhs)
                                  {
                                    return lhs.size() < rhs.size();
                                  });
 
-  uint_fast32_t numFrequencies = *largestFrequencyIterator.size();
+  int numFrequencies = *largestFrequencyIterator.size();
 
 
   //determinando o limite superior local
 
   //menor valor entre o limite global e o valor da solução atual + por quantas frequências falta iterar
+  //maxFrequencies - 1 porque as frequências são indexadas começando-se de 0
   localUpperLimit.value = std::min(globalUpperLimit.value, numFrequencies + ( (maxFrequencies - 1) - frequencyIndex ) );
 
   localUpperLimit.isViable = true;
@@ -86,33 +87,20 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<uint_fast32_t, uin
   localLowerLimit.value = std::max(1, numFrequencies);
   localLowerLimit.isViable = true;
 
-  uint_fast32_t numEdges = graph.numEdges;
-
   //poda por limitante
   if(localLowerLimit > globalUpperLimit) return;
 
-  //verifica viabilidade
+  //verifica viabilidade e quantas conexões ainda não foram feitas
   checkConnections(graph. requestedConnections, frequencies, connectionsToDo);
 
 
-//chegamos ao final das iterações ou ocorreu uma poda por otimalidade
-  if (frequencyIndex == maxFrequencies or localUpperLimit.value == localLowerLimit.value)
+//chegamos ao final das iterações
+  if (frequencyIndex == maxFrequencies)
   {
 
-
-    //poda por viabilidade
-    if( connectionsToDo.empty() ){
-
-      //coletando número de frequências alocadas(maior elemento do vetor + 1)
-      auto largestSetIterator = std::max_element(std::begin(frequencies),
-                                     std::end(frequencies),
-                                     [](const std::unordered_set<uint_fast32_t>& lhs,
-                                        const std::unordered_set<uint_fast32_t>& rhs)
-                                     {
-                                       return lhs.size() < rhs.size();
-                                     });
-
-      uint_fast32_t numFrequencies = *largestSetIterator.size();
+    //poda por inviabilidade -> só armazeno a solução se esse conjunto for vazio, ou seja, se for viável
+    if( connectionsToDo.empty() )
+    {
 
       if (numFrequencies < bestSolutionValue)
       {
@@ -121,53 +109,84 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<uint_fast32_t, uin
 
         if(bestSolutionValue < globalUpperLimit) globalUpperLimit = bestSolutionValue;
 
-        for (uint_fast32_t i = 0; i < edges; i++)
+        for (auto & it: frequencies)
         {
-          bestSolution.push_back(frequencies[i]);
+          bestSolution.push_back(it);
         }
+
+        return; //não preciso mais buscar; obtive uma solução viável
 
       }
 
     }
 
-    else return;
+    else return; //não obtive uma solução viável e já se passaram todas as iterações. sair.
 
   }
 
+  //poda por otimalidade -> aqui eu descarto viabilidade por ser uma solução intermediária
+  else if(localUpperLimit.value == localLowerLimit.value)
+  {
+
+    if (localUpperLimit.value < bestSolutionValue)
+    {
+      bestSolutionValue = localUpperLimit.value;
+      bestSolution.clear();
+
+      if(bestSolutionValue < globalUpperLimit.value) globalUpperLimit.value = bestSolutionValue;
+
+    }
+
+    //encontrando ou não um valor melhor, parar a busca porque não vou encontrar
+    //nada melhor nesse ramo
+    return;
+
+  }
+
+  //não chegamos a nenhum critério de poda ou solução viável
   else
   {
 
-
-    for (uint_fast32_t i = 0; i < edges; i++)
+    //aloco ou não a frequência atual em qualquer uma das arestas do grafo
+    for (int i = 0; i < graph.numEdges; i++)
     {
 
       //não alocar essa frequência...
-      run(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
+      run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo);
 
       //...ou alocar
       frequencies[i].emplace(frequencyIndex);
-      run(graph, requestedConnections, frequencies, frequencyIndex + 1, solutionValue, bestSolution);
+      run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo);
     }
 
   }
 
 }
 
-Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<uint_fast32_t> > &frequencies)
+Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<int> > &frequencies)
 {
 
-  uint_fast32_t edgeIndex = 0;
+  int edgeIndex = 0;
 
-  for (auto & vertex: graph.list)
+  for (int i = 0; i < graph.numVertices; i++)
   {
 
-    for (auto & neighbor: vertex.second)
+    for (int j = 0; i < graph.numVertices; j++)
     //vizinhos e frequências
     {
-      neighbor.second = frequencies[edgeIndex]
-      edgeIndex++;
-      //isso com certeza não passa do número de arestas
+
+      //se existe aresta
+      if(graph.matrix[i][j].first && i != j)
+      {
+        graph.matrix[i][j].second = frequencies[edgeIndex];
+        edgeIndex++;
+      }
+
+      // já preenchi todas as arestas. o resto são repetições na matriz
+      if(edgeIndex == graph.numEdges) break;
     }
+
+    if(edgeIndex == graph.numEdges) break;
 
   }
 
@@ -176,54 +195,63 @@ Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordere
 }
 
 //vê se uma conexão requisitada já foi atendida
-bool BranchAndBound::checkConnection(Graph graph, std::pair<uint_fast32_t, uint_fast32_t> connection, Path & path)
+bool BranchAndBound::checkConnection(Graph graph, std::pair<int, int> connection, Path & path)
 {
 
-  uint_fast32_t source = connection.first;
-  uint_fast32_t destination = connection.second;
+  int source = connection.first;
+  int destination = connection.second;
 
-  uint_fast32_t presentNode;
-  uint_fast32_t presentFrequency;
+  int presentNode;
+  int presentFrequency;
   Path presentPath;
   bool foundAPath;
 
   //varre todos os vizinhos da origem
-  for (auto & neighbor: graph.list[source])
+  for (int j = 0; j < graph.numVertices; j++)
   {
 
-    presentNode = neighbor.first;
-
-    for (auto & freq: neighbor.second) //unordered_set com frequências alocadas na aresta
+    if(graph.matrix[source][j].first) //se é vizinho...
     {
 
-      presentFrequency = freq;
-      presentPath.nodeList.clear();
-      presentPath.nodeList.push_back(source);
-      presentPath.nodeList.push_back(presentNode);
+      presentNode = j;
 
-      if( findPath(graph, presentNode, destination, presentFrequency, presentPath) )
+      //varre por todas as frequências alocadas naquela aresta
+      for (auto & freq: graph.matrix[source][j].second)
       {
-        presentPath.frequency = presentFrequency;
-        foundAPath = true;
-        path = presentPath;
-        return true;
+
+        presentFrequency = freq;
+
+        //inicia a formação de um novo caminho com a frequência freq
+        presentPath.nodeList.clear();
+        presentPath.nodeList.push_back(source);
+        presentPath.nodeList.push_back(presentNode);
+
+        //tenta encontrar um caminho até o destino a partir do vizinho com essa frequência
+        if( findPath(graph, presentNode, destination, presentFrequency, presentPath) )
+        {
+          presentPath.frequency = presentFrequency;
+          foundAPath = true;
+          path = presentPath;
+          return true;
+        }
+
       }
 
     }
 
-  }
+    //não achei nada; o caminho retornado é vazio
+    if(!foundAPath)
+    {
+      path.clear();
+      return false;
+    }
 
-  if(!foundAPath)
-  {
-    path.clear();
-    return false;
   }
 
 }
 
-
-void BranchAndBound::checkConnections(Graph graph, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > & requestedConnections,
-   std::vector< std::unordered_set<uint_fast32_t> > & frequencies, std::vector< std::pair<uint_fast32_t, uint_fast32_t> > &connectionsToDo)
+void BranchAndBound::checkConnections(Graph graph, std::vector< std::pair<int, int> > & requestedConnections,
+   std::vector< std::unordered_set<int> > & frequencies, std::vector< std::pair<int, int> > &connectionsToDo)
 {
 
   //verifica viabilidade:
@@ -231,45 +259,49 @@ void BranchAndBound::checkConnections(Graph graph, std::vector< std::pair<uint_f
   //2) as conexões estão livres de colisões?
 
   //transfere as frequências do vetor para o grafo
-
   Graph g = makeFrequencyGraph(graph, frequencies);
 
   std::vector<Path> pathList;
 
-  std::vector< std::pair<uint_fast32_t, uint_fast32_t> > updateToDo;
+  std::vector< std::pair<int, int> > updateToDo;
 
-  //verifica se todos os pedidos de conexão foram "atendidos"
+  //verifica se todos os pedidos de conexão foram "atendidos" - ainda não estou considerando colisões
   for (auto & connection: requestedConnections)
   {
     Path path;
 
     if( checkConnection(g, connection, path) )
     {
+      //achei um caminho pronto para a conexão, adiciono à lista para verificar se há colisõess
       pathList.push_back(path);
     }
 
+    //a conexão não foi atendida se não existe um caminho
     else updateToDo.push_back(connection);
-    //a conexão não foi atendida se não tem caminho
+
 
   }
 
-  //para todos os caminhos, verifica se existem arestas compartilhadas entre eles
+  //para todos os caminhos da lista, verifica se existem arestas compartilhadas entre eles
   //usando a mesma frequência para os dois caminhos
 
-  for(uint_fast32_t firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
+  for(int firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
   {
 
-    for(uint_fast32_t secondIndex = firstIndex + 1; firstIndex < pathList.size(); secondIndex++)
+    for(int secondIndex = firstIndex + 1; firstIndex < pathList.size(); secondIndex++)
     {
 
-      if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) )
+      if( doPathsHaveFrequencyCollision( pathList[firstIndex], pathList[secondIndex] ) )
       {
 
-        std::pair<uint_fast32_t, uint_fast32_t> firstConnection(*pathList[firstIndex].nodeList.begin(), *(pathList[firstIndex].nodeList.end() - 1) )
-        std::pair<uint_fast32_t, uint_fast32_t> secondConnection(*pathList[secondIndex].nodeList.begin(), *(pathList[secondIndex].nodeList.end() - 1) )
+        //recupera as conexões formadas pelos dois caminhos
+        std::pair<int, int> firstConnection(pathList[firstIndex].nodeList[0], pathList[firstIndex].nodeList[pathList[firstIndex].nodeList.size() - 1] );;
+        std::pair<int, int> secondConnection(pathList[secondIndex].nodeList[0], pathList[secondIndex].nodeList[pathList[secondIndex].nodeList.size() - 1] )
+
+
+        //nenhuma das conexões foi atendida se ambas colidem
         updateToDo.push_back(firstConnection);
         updateToDo.push_back(secondConnection);
-        //nenhuma das conexões foi atendida se ambas colidem
 
       }
 
@@ -283,19 +315,20 @@ void BranchAndBound::checkConnections(Graph graph, std::vector< std::pair<uint_f
 }
 
 //algoritmo recursivo para encontrar um caminho entre um vértice de origem e um vértice de destino
-bool BranchAndBound::findPath(Graph &graph, uint_fast32_t source, uint_fast32_t destination, uint_fast32_t frequency, Path &presentPath)
+bool BranchAndBound::findPath(Graph &graph, int source, int destination, int frequency, Path &presentPath)
 {
 
   if (source == destination) return true;
   bool foundAPath = false;
 
-  for (auto & neighbor: graph.list[source])
+  //vizinhos da origem
+  for (int j = 0; j < graph.numVertices; j++)
   {
 
-    //se o iterador de fim for o retorno, não foi encontrado
-    if ( neighbor.second.find(frequency) != neighbor.second.end() )
+    //se o iterador de fim for o resultado, não foi encontrado
+    if (graph.matrix[source][j].first && graph.matrix[source][j].second.find(frequency) != graph.matrix[source][j].second.end() )
     {
-        uint_fast32_t presentNode = neighbor.first;
+        int presentNode = j;
         presentPath.nodeList.push_back(presentNode);
         foundAPath = findPath(graph, presentNode, destination, frequency, presentPath);
         if(foundAPath) break;

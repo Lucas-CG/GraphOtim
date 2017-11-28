@@ -24,17 +24,17 @@ int main()
   BetweennessHeuristic bh;
   SplittingHeuristic sh;
 
-  std::vector< std::unordered_set<uint_fast32_t> > frequencies;
+  std::vector< std::unordered_set<int> > frequencies;
 
 
   Graph graph;
-  std::vector< std::pair<uint_fast32_t, uint_fast32_t> > requestedConnections;
+  std::vector< std::pair<int, int> > requestedConnections;
   generateInstance1(graph, requestedConnections);
 
   startTime = std::chrono::high_resolution_clock::now();
 
   bb.run(graph, requestedConnections, frequencies, 0, requestedConnections);
-  uint_fast32_t bbResult = bb.bestSolutionValue;
+  int bbResult = bb.bestSolutionValue;
 
   endTime = std::chrono::high_resolution_clock::now();
 
@@ -45,14 +45,14 @@ int main()
 
 
   startTime = std::chrono::high_resolution_clock::now();
-  uint_fast32_t shResult = sh.calculate(graph, requestedConnections);
+  int shResult = sh.calculate(graph, requestedConnections);
   endTime = std::chrono::high_resolution_clock::now();
 
   printf("heuristica de divisao em roteamento e coloracao: %lf segundos\n", endTimeSpan.count());
   std::cout << "Resultado: " << shResult << std::endl;
 
 
-  uint_fast32_t bhResult;
+  int bhResult;
 
   startTime = std::chrono::high_resolution_clock::now();
   bool dummy = bh.calculate(graph, requestedConnections, bhResult);
