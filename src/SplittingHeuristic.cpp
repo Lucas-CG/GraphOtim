@@ -37,42 +37,42 @@ Path SplittingHeuristic::dijkstraForSplitting(Graph graph, int source, int desti
   Path shortestPath;
   bool foundAPath = false;
 
-  //std::cout << "criando vetor de distancias" << std::endl;
+  ////std::cout << "criando vetor de distancias" << std::endl;
   std::vector<int> dist(graph.numVertices, INT_MAX);
   dist[source] = 0;
   //distância infinita para todos menos a raiz
 
-  //std::cout << "criando vetor de pred" << std::endl;
+  ////std::cout << "criando vetor de pred" << std::endl;
   //-1 = sem predecessor
   std::vector<int> pred(graph.numVertices, -1);
 
   //S_ tem todos os vértices
 
-  //std::cout << "criando S_" << std::endl;
+  ////std::cout << "criando S_" << std::endl;
   std::unordered_set<int> S_;
 
 
   for(int i = 0; i < graph.numVertices; i++)
   {
     S_.emplace(i);
-    //std::cout << "S_ <-" << i << std::endl;
+    ////std::cout << "S_ <-" << i << std::endl;
   }
 
   while(!S_.empty())
   {
 
-    //for(auto & it: dist) std::cout << it << std::endl;
+    //for(auto & it: dist) //std::cout << it << std::endl;
 
     //pega o vértice de menor distância que está em S_
     int u = getMinDistanceVertex(dist, S_);
-    //std::cout << "vértice " << u << " retirado de S_" << std::endl;
+    ////std::cout << "vértice " << u << " retirado de S_" << std::endl;
 
     S_.erase(u);
 
     if(u == destination)
     {
 
-      //std::cout << "destino encontrado" << std::endl;
+      ////std::cout << "destino encontrado" << std::endl;
       foundAPath = true;
       break;
 
@@ -98,7 +98,7 @@ Path SplittingHeuristic::dijkstraForSplitting(Graph graph, int source, int desti
   if(foundAPath)
   {
 
-    //std::cout << "formando caminho mínimo" << std::endl;
+    ////std::cout << "formando caminho mínimo" << std::endl;
 
     //obtendo o caminho da origem ao destino
     std::stack<int> stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
@@ -136,7 +136,7 @@ std::vector<Path> SplittingHeuristic::generateShortestPathsForRequestedConnectio
   for(auto & connection: requestedConnections)
   {
 
-    //std::cout << "procurando caminho" << std::endl;
+    ////std::cout << "procurando caminho" << std::endl;
     Path path = dijkstraForSplitting(graph, connection.first, connection.second);
     isTherePath = !path.nodeList.empty();
 
@@ -147,7 +147,7 @@ std::vector<Path> SplittingHeuristic::generateShortestPathsForRequestedConnectio
 
     else
     {
-      //std::cout << "caminho encontrando, adicionando" << std::endl;
+      ////std::cout << "caminho encontrando, adicionando" << std::endl;
       pathList.push_back(path);
     }
 
@@ -162,17 +162,17 @@ std::vector<Path> SplittingHeuristic::generateShortestPathsForRequestedConnectio
 Graph SplittingHeuristic::generateCollisionGraph(Graph graph, std::vector<Path> pathList)
 {
 
-  std::cout << "Inicializando grafo" << std::endl;
+  //std::cout << "Inicializando grafo" << std::endl;
   Graph collisionGraph( pathList.size() );
-  std::cout << "Há " << pathList.size() << " caminhos." << std::endl;
+  //std::cout << "Há " << pathList.size() << " caminhos." << std::endl;
 
   for(auto & it: pathList){
 
     for (auto & itt: it.nodeList){
-      std::cout << itt << ",";
+      //std::cout << itt << ",";
     }
 
-    std::cout << std::endl;
+    //std::cout << std::endl;
 
   }
 
@@ -183,18 +183,18 @@ Graph SplittingHeuristic::generateCollisionGraph(Graph graph, std::vector<Path> 
 
   for(int firstIndex = 0; firstIndex < pathList.size(); firstIndex++)
   {
-    std::cout << "firstIndex = " << firstIndex << std::endl;
+    //std::cout << "firstIndex = " << firstIndex << std::endl;
 
     for(int secondIndex = firstIndex + 1; secondIndex < pathList.size(); secondIndex++)
     {
 
-      std::cout << "secondIndex = " << secondIndex << std::endl;
+      //std::cout << "secondIndex = " << secondIndex << std::endl;
 
       if( doPathsHaveCollision( pathList[firstIndex], pathList[secondIndex] ) )
       {
 
         collisionGraph.addEdge(firstIndex, secondIndex);
-        std::cout << "aresta (" << firstIndex << "," << secondIndex << ")" << std::endl;
+        //std::cout << "aresta (" << firstIndex << "," << secondIndex << ")" << std::endl;
 
       }
 
@@ -236,7 +236,7 @@ int SplittingHeuristic::greedyColoring(Graph collisionGraph)
     }
     //(número do vértice, grau)
     std::pair<int, int> vertex(i, degree);
-    std::cout << "Inserindo vertice " << i << " com grau " << degree << std::endl;
+    //std::cout << "Inserindo vertice " << i << " com grau " << degree << std::endl;
 
     pq.emplace(vertex);
   }
@@ -250,22 +250,22 @@ int SplittingHeuristic::greedyColoring(Graph collisionGraph)
     nextVertex = pq.top();
     pq.pop();
 
-    std::cout << "Retirado vértice " << nextVertex.first << " com grau" << nextVertex.second << std::endl;
+    //std::cout << "Retirado vértice " << nextVertex.first << " com grau" << nextVertex.second << std::endl;
 
     if( colorArrangement.empty() )
     {
       std::vector<int> newColor;
 
-      std::cout << "Primeira cor criada" << std::endl;
+      //std::cout << "Primeira cor criada" << std::endl;
 
       //nextVertex.first é o índice do vértice
       newColor.push_back(nextVertex.first);
 
-      std::cout << "Vértice " << nextVertex.first << " inserido" << std::endl;
+      //std::cout << "Vértice " << nextVertex.first << " inserido" << std::endl;
 
       colorArrangement.push_back(newColor);
 
-      std::cout << "Nova cor inserida na lista" << std::endl;
+      //std::cout << "Nova cor inserida na lista" << std::endl;
 
       foundColor = true;
     }
@@ -284,7 +284,7 @@ int SplittingHeuristic::greedyColoring(Graph collisionGraph)
           if(i == color.size() - 1)
           {
             color.push_back(nextVertex.first);
-            std::cout << "Inserindo vértice " << nextVertex.first << " em cor existente" << std::endl;
+            //std::cout << "Inserindo vértice " << nextVertex.first << " em cor existente" << std::endl;
             foundColor = true;
             break; //esse break está aqui pq a inserção aumenta o tamanho de 1, criando um loop infinito
           }
@@ -301,16 +301,16 @@ int SplittingHeuristic::greedyColoring(Graph collisionGraph)
         //se eu terminei e não achei uma cor na qual eu possa inserir o vértice, crio uma nova
         std::vector<int> newColor;
 
-        std::cout << "Nova cor criada" << std::endl;
+        //std::cout << "Nova cor criada" << std::endl;
 
         //nextVertex.first é o índice do vértice
         newColor.push_back(nextVertex.first);
 
-        std::cout << "Vértice " << nextVertex.first << " inserido" << std::endl;
+        //std::cout << "Vértice " << nextVertex.first << " inserido" << std::endl;
 
         colorArrangement.push_back(newColor);
 
-        std::cout << "Nova cor inserida na lista" << std::endl;
+        //std::cout << "Nova cor inserida na lista" << std::endl;
 
       }
 
@@ -327,17 +327,17 @@ int SplittingHeuristic::greedyColoring(Graph collisionGraph)
 int SplittingHeuristic::calculate(Graph graph, std::vector< std::pair<int, int> > & requestedConnections)
 {
 
-  std::cout << "Gerando caminhos para as conexões" << std::endl;
+  //std::cout << "Gerando caminhos para as conexões" << std::endl;
 
   std::vector<Path> pathList = generateShortestPathsForRequestedConnections(graph, requestedConnections);
 
   if( pathList.empty() ) return -1;
 
-  std::cout << "Gerando grafo de colisão" << std::endl;
+  //std::cout << "Gerando grafo de colisão" << std::endl;
 
   Graph collisionGraph = generateCollisionGraph(graph, pathList);
 
-  std::cout << "Calculando coloração" << std::endl;
+  //std::cout << "Calculando coloração" << std::endl;
 
   return greedyColoring(collisionGraph);
 

@@ -58,6 +58,8 @@ int main(int argc, char **argv)
   int shResult = sh.calculate(graph, requestedConnections);
   endTime = std::chrono::high_resolution_clock::now();
 
+  endTimeSpan = std::chrono::duration_cast<std::chrono::duration<double> >(endTime - startTime);
+
   printf("heuristica de divisao em roteamento e coloracao: %lf segundos\n", endTimeSpan.count());
   std::cout << "Resultado: " << shResult << std::endl;
 
@@ -68,6 +70,8 @@ int main(int argc, char **argv)
   startTime = std::chrono::high_resolution_clock::now();
   int bhResult = bh.calculate(graph, requestedConnections);
   endTime = std::chrono::high_resolution_clock::now();
+
+  endTimeSpan = std::chrono::duration_cast<std::chrono::duration<double> >(endTime - startTime);
 
   printf("heuristica de betweenness: %lf segundos\n", endTimeSpan.count());
   std::cout << "Resultado: " << bhResult << std::endl;

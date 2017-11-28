@@ -43,7 +43,7 @@ class BranchAndBound
 
     Graph makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<int> > &frequencies);
 
-    bool checkConnection(Graph & graph, std::pair<int, int> connection, Path & path);
+    bool checkConnection(Graph & graph, std::pair<int, int> connection, std::vector<Path> & pathVector);
 
     void checkConnections(Graph & graph, std::vector< std::pair<int, int> > & requestedConnections,
        std::vector< std::unordered_set<int> > & frequencies, int &connectionsToDo);

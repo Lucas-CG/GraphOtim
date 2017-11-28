@@ -18,7 +18,7 @@
 void PathGlobalUpperLimit::calculate(Graph & graph)
 {
 
-  std::cout << "Calculando pior caso" << std::endl;
+  //std::cout << "Calculando pior caso" << std::endl;
 
   int numPathEdges = graph.numVertices - 1;
 
@@ -27,7 +27,7 @@ void PathGlobalUpperLimit::calculate(Graph & graph)
   for (int i = 0; i < numPathEdges; i++)
   {
 
-    std::cout << "pior caso: aresta " << i << std::endl;
+    //std::cout << "pior caso: aresta " << i << std::endl;
     pathEdges.push_back( (numPathEdges - i) * (i + 1) );
 
   }
@@ -46,29 +46,29 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
    int connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit)
 {
 
-  std::cout << "imprimindo grafo" << std::endl;
+  //std::cout << "imprimindo grafo" << std::endl;
 
-  graph.print();
+  //graph.print();
 
   //primeira iteração
   if(frequencyIndex == 0)
   {
 
-    std::cout << "Primeira iteração" << std::endl;
+    //std::cout << "Primeira iteração" << std::endl;
 
     pathLimit.calculate(graph);
 
 
-    std::cout << "calculando heurística de betweenness" << std::endl;
+    //std::cout << "calculando heurística de betweenness" << std::endl;
     BetweennessHeuristic btwn;
     int betweennessLimitValue = btwn.calculate(graph, requestedConnections);
     if(betweennessLimitValue == -1) return; //problema inviável (não existe caminho para alguma das conexões)
 
-    std::cout << "valor pelo btwn: " << betweennessLimitValue << std::endl;
+    //std::cout << "valor pelo btwn: " << betweennessLimitValue << std::endl;
 
     globalUpperLimit.value = std::min(pathLimit.value, betweennessLimitValue);
 
-    std::cout << "Limite superior global: " << globalUpperLimit.value << std::endl;
+    //std::cout << "Limite superior global: " << globalUpperLimit.value << std::endl;
 
     globalUpperLimit.isViable = true;
 
@@ -77,19 +77,19 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
 
     maxFrequencies = globalUpperLimit.value;
 
-    std::cout << "num max de freqs: " << maxFrequencies << std::endl;
+    //std::cout << "num max de freqs: " << maxFrequencies << std::endl;
 
     std::unordered_set<int> startingFrequencies;
     startingFrequencies.emplace(0);
 
-    std::cout << "inserindo a frequência 0 em todas as arestas" << std::endl;
+    //std::cout << "inserindo a frequência 0 em todas as arestas" << std::endl;
 
     //todas as arestas recebem 1 frequência (esse é o mínimo para conectar todos)
     for(int i = 0; i < graph.numEdges; i++) frequencies.push_back(startingFrequencies);
 
   }
 
-  std::cout << "calculando o número de frequências alocadas até agora" << std::endl;
+  //std::cout << "calculando o número de frequências alocadas até agora" << std::endl;
   //coletando maior número de frequências alocadas em uma aresta qualquer (tamanho do maior vetor de frequências)
   int numFrequencies = 0;
 
@@ -98,27 +98,27 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
     if(edge.size() > numFrequencies) numFrequencies = edge.size();
   }
 
-  std::cout << "e são... " << numFrequencies << std::endl;
+  //std::cout << "e são... " << numFrequencies << std::endl;
 
-  std::cout << "calculando limites locais" << std::endl;
+  //std::cout << "calculando limites locais" << std::endl;
 
   localUpperLimit.isViable = true;
 
   localLowerLimit.value = std::max(1, numFrequencies);
 
-  std::cout << "limite inferior local: " <<updateToDo localLowerLimit.value << std::endl;
+  //std::cout << "limite inferior local: " << localLowerLimit.value << std::endl;
 
   localLowerLimit.isViable = true;
 
   //poda por limitante
   if(localLowerLimit.value > globalUpperLimit.value)
   {
-    std::cout << "poda por limitante: " << localLowerLimit.value << " > " << globalUpperLimit.value << std::endl;
+    //std::cout << "poda por limitante: " << localLowerLimit.value << " > " << globalUpperLimit.value << std::endl;
     return;
   }
 
 
-  std::cout << "checando se todas as conexões foram feitas (viabilidade)" << std::endl;
+  //std::cout << "checando se todas as conexões foram feitas (viabilidade)" << std::endl;
   //verifica viabilidade e quantas conexões ainda não foram feitas
   checkConnections(graph, requestedConnections, frequencies, connectionsToDo);
 
@@ -130,44 +130,44 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
   int missingPathsLimitValue = numFrequencies + connectionsToDo;
   localUpperLimit.value = std::min(globalUpperLimit.value, missingPathsLimitValue);
 
-  std::cout << "limite superior do que falta: " << missingPathsLimitValue << std::endl;
+  //std::cout << "limite superior do que falta: " << missingPathsLimitValue << std::endl;
 
 
-  std::cout << "limite superior local: " << localUpperLimit.value << std::endl;
+  //std::cout << "limite superior local: " << localUpperLimit.value << std::endl;
 
 
 //chegamos ao final das iterações
   if (frequencyIndex == maxFrequencies)
   {
-    std::cout << "última iteração" << std::endl;
+    //std::cout << "última iteração" << std::endl;
 
     //poda por inviabilidade -> só armazeno a solução se esse conjunto for vazio, ou seja, se for viável
     if( connectionsToDo == 0 )
     {
 
-      std::cout << "todas as conexões foram feitas (solução viável encontrada)" << std::endl;
+      //std::cout << "todas as conexões foram feitas (solução viável encontrada)" << std::endl;
 
       if (numFrequencies < bestSolutionValue)
       {
-        std::cout << "encontrada solução melhor que atual! " << numFrequencies << " < " << bestSolutionValue << std::endl;
+        //std::cout << "encontrada solução melhor que atual! " << numFrequencies << " < " << bestSolutionValue << std::endl;
         bestSolutionValue = numFrequencies;
         bestSolution.clear();
 
         if(bestSolutionValue < globalUpperLimit.value)
         {
           globalUpperLimit.value = bestSolutionValue;
-          std::cout << "melhor solução substitui limite! " << bestSolutionValue << " < " << globalUpperLimit.value << std::endl;
+          //std::cout << "melhor solução substitui limite! " << bestSolutionValue << " < " << globalUpperLimit.value << std::endl;
         }
 
 
-        std::cout << "montando melhor solução" << std::endl;
+        //std::cout << "montando melhor solução" << std::endl;
         for (auto & it: frequencies)
         {
           bestSolution.push_back(it);
         }
 
 
-        std::cout << "busca nesse nó encerrada" << std::endl;
+        //std::cout << "busca nesse nó encerrada" << std::endl;
         return; //não preciso mais buscar; obtive uma solução viável
 
       }
@@ -176,7 +176,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
 
 
     else{
-      std::cout << "sem soluções viáveis após maxFrequencies iterações." << std::endl;
+      //std::cout << "sem soluções viáveis após maxFrequencies iterações." << std::endl;
        return; //não obtive uma solução viável e já se passaram todas as iterações. sair.
     }
   }
@@ -184,25 +184,25 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
   //poda por otimalidade -> aqui eu descarto viabilidade por ser uma solução intermediária
   else if(localUpperLimit.value == localLowerLimit.value)
   {
-    std::cout << "limites se encontraram - poda por otimalidade" << std::endl;
+    //std::cout << "limites se encontraram - poda por otimalidade" << std::endl;
 
     if (localUpperLimit.value < bestSolutionValue)
     {
-      std::cout << "encontrada solução melhor que atual! " << localUpperLimit.value << " < " << bestSolutionValue << std::endl;
+      //std::cout << "encontrada solução melhor que atual! " << localUpperLimit.value << " < " << bestSolutionValue << std::endl;
       bestSolutionValue = localUpperLimit.value;
       bestSolution.clear();
 
       if(bestSolutionValue < globalUpperLimit.value)
       {
         globalUpperLimit.value = bestSolutionValue;
-        std::cout << "melhor solução substitui limite! " << bestSolutionValue << " < " << globalUpperLimit.value << std::endl;
+        //std::cout << "melhor solução substitui limite! " << bestSolutionValue << " < " << globalUpperLimit.value << std::endl;
       }
 
     }
 
     //encontrando ou não um valor melhor, parar a busca porque não vou encontrar
     //nada melhor nesse ramo
-    std::cout << "busca encerrada devido à poda por otimalidade" << std::endl;
+    //std::cout << "busca encerrada devido à poda por otimalidade" << std::endl;
     return;
 
   }
@@ -211,18 +211,18 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
   else
   {
 
-    std::cout << "nenhum critério de poda satisfeito ou solução viável encontrada" << std::endl;
+    //std::cout << "nenhum critério de poda satisfeito ou solução viável encontrada" << std::endl;
 
     //aloco ou não a frequência atual em qualquer uma das arestas do grafo
     for (int i = 0; i < graph.numEdges; i++)
     {
 
-      std::cout << "criando novo filho: frequência " << frequencyIndex << " não alocada na aresta " << i << std::endl;
+      //std::cout << "criando novo filho: frequência " << frequencyIndex << " não alocada na aresta " << i << std::endl;
       //não alocar essa frequência...
       run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo, localUpperLimit, localLowerLimit);
 
       //...ou alocar
-      std::cout << "criando novo filho: frequência " << frequencyIndex << " alocada na aresta " << i << std::endl;
+      //std::cout << "criando novo filho: frequência " << frequencyIndex << " alocada na aresta " << i << std::endl;
       frequencies[i].emplace(frequencyIndex);
       run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo, localUpperLimit, localLowerLimit);
     }
@@ -234,27 +234,27 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
 Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<int> > &frequencies)
 {
 
-  std::cout << "criando grafo com frequências" << std::endl;
+  //std::cout << "criando grafo com frequências" << std::endl;
   int edgeIndex = 0;
 
-  std::cout << "numVertices = " << graph.numVertices << std::endl;
+  //std::cout << "numVertices = " << graph.numVertices << std::endl;
 
   for (int i = 0; i < graph.numVertices; i++)
   {
-    std::cout << "graph.matrix[i], i = " << i << std::endl;
+    //std::cout << "graph.matrix[i], i = " << i << std::endl;
 
     //se j não for maior que i, vão ter arestas repetidas ( por ex.: (1,3) e (3, 1) )
     for (int j = i + 1; j < graph.numVertices; j++)
     //vizinhos e frequências
     {
 
-      std::cout << "graph.matrix[i][j], j = " << j << std::endl;
+      //std::cout << "graph.matrix[i][j], j = " << j << std::endl;
 
       //se existe aresta
       if(graph.matrix[i][j].first && i != j)
       {
-        std::cout << "existe aresta entre " << i << " e " << j << std::endl;
-        std::cout << "alocando frequências na aresta (" << i << ", " << j << ")" << std::endl;
+        //std::cout << "existe aresta entre " << i << " e " << j << std::endl;
+        //std::cout << "alocando frequências na aresta (" << i << ", " << j << ")" << std::endl;
 
         graph.matrix[i][j].second.clear();
         graph.matrix[j][i].second.clear();
@@ -269,7 +269,7 @@ Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordere
       // já preenchi todas as arestas. o resto são repetições na matriz
       if(edgeIndex == graph.numEdges)
       {
-        std::cout << "todas as arestas preenchidas" << std::endl;
+        //std::cout << "todas as arestas preenchidas" << std::endl;
         break;
       }
     }
@@ -286,7 +286,7 @@ Graph BranchAndBound::makeFrequencyGraph(Graph graph, std::vector< std::unordere
 bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connection, std::vector<Path> & pathVector)
 {
 
-  std::cout << "checkConnection" << std::endl;
+  //std::cout << "checkConnection" << std::endl;
 
   int source = connection.first;
   int destination = connection.second;
@@ -300,14 +300,14 @@ bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connecti
   for (int j = 0; j < graph.numVertices; j++)
   {
 
-    std::cout << "varrendo vértice " << j << std::endl;
+    //std::cout << "varrendo vértice " << j << std::endl;
 
-    std::cout << graph.matrix[source][j].first << std::endl;
+    //std::cout << graph.matrix[source][j].first << std::endl;
 
     if(graph.matrix[source][j].first) //se for vizinho...
     {
 
-      std::cout << j << " é vizinho de " << source << std::endl;
+      //std::cout << j << " é vizinho de " << source << std::endl;
 
       presentNode = j;
 
@@ -317,19 +317,19 @@ bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connecti
 
         presentFrequency = freq;
 
-        std::cout << "tomei uma frequência: " << freq << std::endl;
+        //std::cout << "tomei uma frequência: " << freq << std::endl;
 
         //inicia a formação de um novo caminho com a frequência freq
         presentPath.nodeList.clear();
         presentPath.nodeList.push_back(source);
         presentPath.nodeList.push_back(presentNode);
 
-        std::cout << "começando um novo caminho com frequência " << freq << " e nós " << source << " e " << presentNode << std::endl;
+        //std::cout << "começando um novo caminho com frequência " << freq << " e nós " << source << " e " << presentNode << std::endl;
 
         //tenta encontrar um caminho até o destino a partir do vizinho com essa frequência
         if( findPath(graph, presentNode, destination, presentFrequency, presentPath) )
         {
-          std::cout << "encontrei caminho!!!11ondeonzeee" << std::endl;
+          //std::cout << "encontrei caminho!!!11ondeonzeee" << std::endl;
           presentPath.frequency = presentFrequency;
           pathVector.push_back(presentPath);
         }
@@ -343,7 +343,7 @@ bool BranchAndBound::checkConnection(Graph & graph, std::pair<int, int> connecti
   //não achei nada; o caminho retornado é vazio
   if(pathVector.empty())
   {
-    std::cout << "não achei nada" << std::endl;
+    //std::cout << "não achei nada" << std::endl;
     return false;
   }
 
@@ -362,26 +362,28 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
   //transfere as frequências do vetor para o grafo
   Graph g = makeFrequencyGraph(graph, frequencies);
 
-  std::cout << "imprimindo grafo com frequências" << std::endl;
-  g.print();
+  //std::cout << "imprimindo grafo com frequências" << std::endl;
+  //g.print();
 
   //std::vector<Path> pathList;
   //estrutura de dados para armazenar caminhos:
   //armazena todos os caminhos possíveis para uma conexão requisitada
-  std::map< std::pair<int>, std::vector<Path> > pathList;
+  std::map< std::pair<int, int>, std::vector<Path> > pathList;
 
-  std::cout << "verificando pedidos de conexão" << std::endl;
+  int notDonePaths = 0;
+
+  //std::cout << "verificando pedidos de conexão" << std::endl;
   //verifica se todos os pedidos de conexão foram "atendidos" - ainda não estou considerando colisões
   for (auto & connection: requestedConnections)
   {
 
-    std::cout << "Pedido de conexão (" << connection.first << ", " << connection.second << ")" << std::endl;
+    //std::cout << "Pedido de conexão (" << connection.first << ", " << connection.second << ")" << std::endl;
 
     std::vector<Path> pathVector;
 
     if( checkConnection(g, connection, pathVector) )
     {
-      std::cout << "caminho encontrado! adicionando à lista" << std::endl;
+      //std::cout << "caminho encontrado! adicionando à lista" << std::endl;
       //achei um caminho pronto para a conexão, adiciono à lista para verificar se há colisõess
 
       pathList[connection] = pathVector;
@@ -389,8 +391,8 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
 
     //a conexão não foi atendida se não existe um caminho
     else{
-      std::cout << "inserindo conexão no TODO - ainda não há caminho" << std::endl;
-      updateToDo.push_back(connection);
+      //std::cout << "inserindo conexão no TODO - ainda não há caminho" << std::endl;
+      notDonePaths++;
     }
 
 
@@ -404,6 +406,8 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
 
   //eu quero minimizar a quantidade de caminhos a fazer
 
+  //std::cout << "combinações começando..." << std::endl;
+
   std::vector< Path > minimalCollisionPaths;
   int minCollisions = INT_MAX;
 
@@ -413,17 +417,21 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
 
   connectionCombinationQueue.push(dummy);
 
+  std::queue< std::vector<Path> > tempQueue;
+
+  //std::cout << "fila inicializada" << std::endl;
+
   //para todos os pares(chave, valor)...
   //gerar todas as combinações possíveis
   for(auto & it: pathList)
   {
 
-    std::queue< std::vector<Path> > tempQueue;
-
     while( !connectionCombinationQueue.empty() )
     {
+      //std::cout << "connectionCombinationQueue.size() " << connectionCombinationQueue.size() << std::endl;
       std::vector<Path> combination = connectionCombinationQueue.front();
       connectionCombinationQueue.pop();
+      //std::cout << "connectionCombinationQueue.size() " << connectionCombinationQueue.size() << std::endl;
 
       //põe nessa combinação todos os caminhos possíveis e os insere na fila temporária
       //para todos os caminhos armazenados para o par it (chamo aqui de itt)...
@@ -434,16 +442,27 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
         tempQueue.push(newCombination);
       }
 
+
+      //repetindo-se isso para todos os pares de conexões, gera-se todas as combinações possíveis de caminhos
+
+    }
+
+    //std::cout << "temp size = " << tempQueue.size() << std::endl;
     //troca o conteúdo da fila velha para a nova
     std::swap(connectionCombinationQueue, tempQueue);
 
-    //repetindo-se isso para todos os pares de conexões, gera-se todas as combinações possíveis de caminhos
+    //esvaziando a fila temporária
+    std::queue< std::vector<Path> > emptyQueue;
+    //std::cout << emptyQueue.size() << std::endl;
+    std::swap(tempQueue, emptyQueue);
 
-    }
+    //std::cout << "fila vazia nessa iteração; seguindo para o próximo par" << std::endl;
 
 
   }
 
+
+  //std::cout << "todas as combinações estão formadas. verificar colisões..." << std::endl;
   //esvazio a pilha com todas as combinações e busco a com o menor número de colisões par a par
   while( !connectionCombinationQueue.empty() )
   {
@@ -458,14 +477,14 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
     for(int firstIndex = 0; firstIndex < finalCombination.size(); firstIndex++)
     {
 
-      for(int secondIndex = firstIndex + 1; secondIndex < finalCombination.size(). secondIndex++)
+      for(int secondIndex = firstIndex + 1; secondIndex < finalCombination.size(); secondIndex++)
       {
 
-        std::cout << "Caminho " << firstIndex << "X Caminho " << secondIndex << std::endl;
+        //std::cout << "Caminho " << firstIndex << "X Caminho " << secondIndex << std::endl;
         if( doPathsHaveFrequencyCollision( finalCombination[firstIndex], finalCombination[secondIndex] ) )
         {
 
-          std::cout << "tem colisão! somando + 1 ao número de colisões" << std::endl;
+          //std::cout << "tem colisão! somando + 1 ao número de colisões" << std::endl;
           numCollisions++;
 
         }
@@ -483,7 +502,8 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
 
   }
 
-  connectionsToDo = minCollisions;
+  //as conexões que tenho que fazer são os caminhos com colisões e os caminhos que não estão completos
+  connectionsToDo = minCollisions + notDonePaths;
 
 }
 
@@ -491,13 +511,13 @@ void BranchAndBound::checkConnections(Graph & graph, std::vector< std::pair<int,
 bool BranchAndBound::findPath(Graph & graph, int source, int destination, int frequency, Path &presentPath)
 {
 
-  std::cout << "findPath iniciando, porran" << std::endl;
-  std::cout << "source: " << source << std::endl;
-  std::cout << "destination: " << destination << std::endl;
+  //std::cout << "findPath iniciando, porran" << std::endl;
+  //std::cout << "source: " << source << std::endl;
+  //std::cout << "destination: " << destination << std::endl;
 
   if (source == destination)
   {
-    std::cout << "findPath: achei o destino" << std::endl;
+    //std::cout << "findPath: achei o destino" << std::endl;
     return true;
   }
 
@@ -507,9 +527,9 @@ bool BranchAndBound::findPath(Graph & graph, int source, int destination, int fr
   for (int j = 0; j < graph.numVertices; j++)
   {
 
-    std::cout << "findPath: olhando vértice " << j << std::endl;
+    //std::cout << "findPath: olhando vértice " << j << std::endl;
 
-    std::cout << "será que j já está no caminho?" << std::endl;
+    //std::cout << "será que j já está no caminho?" << std::endl;
 
     bool isJInThePath = false;
 
@@ -519,14 +539,14 @@ bool BranchAndBound::findPath(Graph & graph, int source, int destination, int fr
     }
 
 
-    std::cout << "graph.matrix[" << source << "][" << j << "].first = " << graph.matrix[source][j].first << std::endl;
-    std::cout << "is " << j << " in the path? " << isJInThePath << std::endl;
-    std::cout << "achei frequência? " << (graph.matrix[source][j].second.find(frequency) != graph.matrix[source][j].second.end()) << std::endl;
+    //std::cout << "graph.matrix[" << source << "][" << j << "].first = " << graph.matrix[source][j].first << std::endl;
+    //std::cout << "is " << j << " in the path? " << isJInThePath << std::endl;
+    //std::cout << "achei frequência? " << (graph.matrix[source][j].second.find(frequency) != graph.matrix[source][j].second.end()) << std::endl;
 
     //se o iterador de fim for o resultado, não foi encontrado
     if (graph.matrix[source][j].first && !isJInThePath && graph.matrix[source][j].second.find(frequency) != graph.matrix[source][j].second.end() )
     {
-        std::cout << "é vizinho, tem a frequência e não está no caminho; adicionando ao caminho" << std::endl;
+        //std::cout << "é vizinho, tem a frequência e não está no caminho; adicionando ao caminho" << std::endl;
         int presentNode = j;
         presentPath.nodeList.push_back(presentNode);
         foundAPath = findPath(graph, presentNode, destination, frequency, presentPath);
