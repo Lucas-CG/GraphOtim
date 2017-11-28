@@ -13,7 +13,7 @@ int SplittingHeuristic::getMinDistanceVertex(std::vector<int> vec)
 
   for(int i = 0; i < vec.size(); i++)
   {
-    
+
     if(vec[i] < minElement)
     {
       minElement = vec[i];
@@ -249,6 +249,9 @@ int SplittingHeuristic::greedyColoring(Graph collisionGraph)
 int SplittingHeuristic::calculate(Graph graph, std::vector< std::pair<int, int> > & requestedConnections){
 
   std::vector<Path> pathList = generateShortestPathsForRequestedConnections(graph, requestedConnections);
+
+  if( pathList.empty() ) return -1;
+  
   Graph collisionGraph = generateCollisionGraph(graph, pathList);
   return greedyColoring(collisionGraph);
 

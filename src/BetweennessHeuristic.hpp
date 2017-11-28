@@ -14,7 +14,6 @@ class BetweennessHeuristic
 
     Path dijkstraForBetweenness(Graph graph, int source, int destination);
 
-    //falso se algum caminho não for encontrado
     int calculate(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections);
 
 };

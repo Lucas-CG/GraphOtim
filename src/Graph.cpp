@@ -4,6 +4,7 @@
 #include <string> //std::string, std::stoi
 #include <unordered_set> //std::unordered_set
 
+/*
 template<typename Out>
 void split(const std::string &s, char delim, Out result)
 {
@@ -19,12 +20,14 @@ void split(const std::string &s, char delim, Out result)
 
 }
 
+*/
+
 Graph::Graph(int size)
 {
 
   numVertices = size;
 
-  std::unordered_set nullFreqs;
+  std::unordered_set<int> nullFreqs;
 
   std::pair<bool, std::unordered_set<int> > pair(false, nullFreqs);
 
@@ -71,8 +74,8 @@ bool doPathsHaveCollision(Path &path1, Path &path2)
       std::pair<int, int> edge(path1.nodeList[i], path1.nodeList[i+1]);
       std::pair<int, int> reverseEdge(path1.nodeList[i+1], path1.nodeList[i]);
 
-      path1Edges.emplace(edge);
-      path1Edges.emplace(reverseEdge);
+      path1Edges.push_back(edge);
+      path1Edges.push_back(reverseEdge);
     }
 
   }
@@ -85,14 +88,14 @@ bool doPathsHaveCollision(Path &path1, Path &path2)
       std::pair<int, int> edge(path2.nodeList[i], path2.nodeList[i+1]);
       std::pair<int, int> reverseEdge(path2.nodeList[i+1], path2.nodeList[i]);
 
-      path2Edges.emplace(edge);
-      path2Edges.emplace(reverseEdge);
+      path2Edges.push_back(edge);
+      path2Edges.push_back(reverseEdge);
     }
 
   }
 
   //comparar as arestas dos dois caminhos
-  for(auto & it: path1Edges)
+  for(auto & it1: path1Edges)
   {
 
     for(auto & it2: path2Edges)

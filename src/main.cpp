@@ -12,7 +12,7 @@
 std::chrono::high_resolution_clock::time_point startTime;
 std::chrono::high_resolution_clock::time_point endTime;
 
-int main()
+int main(int argc, char **argv)
 {
 
   startTime = std::chrono::high_resolution_clock::now();
@@ -20,20 +20,27 @@ int main()
   std::chrono::duration<double> endTimeSpan;
 
 
+
   BranchAndBound bb;
+  LocalUpperLimit localUpperLimit;
+  LocalLowerLimit localLowerLimit;
+  std::vector< std::pair<int, int> > connectionsToDo;
+
+
   BetweennessHeuristic bh;
   SplittingHeuristic sh;
 
   std::vector< std::unordered_set<int> > frequencies;
 
 
-  Graph graph;
   std::vector< std::pair<int, int> > requestedConnections;
-  generateInstance1(graph, requestedConnections);
+  Graph graph = generateInstance1(requestedConnections);
+
+
 
   startTime = std::chrono::high_resolution_clock::now();
 
-  bb.run(graph, requestedConnections, frequencies, 0, requestedConnections);
+  bb.run(graph, requestedConnections, frequencies, 0, connectionsToDo, localUpperLimit, localLowerLimit);
   int bbResult = bb.bestSolutionValue;
 
   endTime = std::chrono::high_resolution_clock::now();
@@ -52,15 +59,15 @@ int main()
   std::cout << "Resultado: " << shResult << std::endl;
 
 
-  int bhResult;
-
   startTime = std::chrono::high_resolution_clock::now();
-  bool dummy = bh.calculate(graph, requestedConnections, bhResult);
+  int bhResult = bh.calculate(graph, requestedConnections);
   endTime = std::chrono::high_resolution_clock::now();
 
   printf("heuristica de betweenness: %lf segundos\n", endTimeSpan.count());
   std::cout << "Resultado: " << bhResult << std::endl;
 
 
+
+  return 0;
 
 }

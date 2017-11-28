@@ -8,9 +8,10 @@
 #include <string> //std::string
 #include <vector> //std::vector
 
+/*
 template<typename Out>
 void split(const std::string &s, char delim, Out result);
-
+*/
 
 class Path
 {

@@ -6,6 +6,8 @@
 #include <algorithm> //std::max, std::min
 #include "BetweennessHeuristic.hpp"
 #include "Graph.hpp"
+#include <climits> //INT_MAX
+
 
 //calcula a quantidade de frequências necessárias em um grafo linha
 //onde todas as possíveis combinações de vértices devem ter uma conexão
@@ -13,7 +15,7 @@
 void PathGlobalUpperLimit::calculate(Graph & graph)
 {
 
-  int numPathEdges = graph.numVertices - 1
+  int numPathEdges = graph.numVertices - 1;
 
   std::vector<int> pathEdges(numPathEdges, 0);
 
@@ -35,7 +37,7 @@ void PathGlobalUpperLimit::calculate(Graph & graph)
 
 void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections,
    std::vector< std::unordered_set<int> > frequencies, int frequencyIndex,
-   std::vector< std::pair<int, int> > connectionsToDo)
+   std::vector< std::pair<int, int> > connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit)
 {
 
 
@@ -64,16 +66,13 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
 
   }
 
-  //coletando maior número de frequências alocadas(tamanho do maior vetor de frequências)
-  auto largestFrequencyIterator = std::max_element(std::begin(frequencies),
-                                 std::end(frequencies),
-                                 [](const std::unordered_set<int>& lhs,
-                                    const std::unordered_set<int>& rhs)
-                                 {
-                                   return lhs.size() < rhs.size();
-                                 });
+  //coletando maior número de frequências alocadas (tamanho do maior vetor de frequências)
+  int numFrequencies = 0;
 
-  int numFrequencies = *largestFrequencyIterator.size();
+  for(auto & edge: frequencies)
+  {
+    if(edge.size() > numFrequencies) numFrequencies = edge.size();
+  }
 
 
   //determinando o limite superior local
@@ -88,10 +87,10 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
   localLowerLimit.isViable = true;
 
   //poda por limitante
-  if(localLowerLimit > globalUpperLimit) return;
+  if(localLowerLimit.value > globalUpperLimit.value) return;
 
   //verifica viabilidade e quantas conexões ainda não foram feitas
-  checkConnections(graph. requestedConnections, frequencies, connectionsToDo);
+  checkConnections(graph, requestedConnections, frequencies, connectionsToDo);
 
 
 //chegamos ao final das iterações
@@ -107,7 +106,7 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
         bestSolutionValue = numFrequencies;
         bestSolution.clear();
 
-        if(bestSolutionValue < globalUpperLimit) globalUpperLimit = bestSolutionValue;
+        if(bestSolutionValue < globalUpperLimit.value) globalUpperLimit.value = bestSolutionValue;
 
         for (auto & it: frequencies)
         {
@@ -152,11 +151,11 @@ void BranchAndBound::run(Graph &graph, std::vector< std::pair<int, int> > & requ
     {
 
       //não alocar essa frequência...
-      run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo);
+      run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo, localUpperLimit, localLowerLimit);
 
       //...ou alocar
       frequencies[i].emplace(frequencyIndex);
-      run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo);
+      run(graph, requestedConnections, frequencies, frequencyIndex + 1, connectionsToDo, localUpperLimit, localLowerLimit);
     }
 
   }
@@ -242,7 +241,7 @@ bool BranchAndBound::checkConnection(Graph graph, std::pair<int, int> connection
     //não achei nada; o caminho retornado é vazio
     if(!foundAPath)
     {
-      path.clear();
+      path.nodeList.clear();
       return false;
     }
 
@@ -295,8 +294,8 @@ void BranchAndBound::checkConnections(Graph graph, std::vector< std::pair<int, i
       {
 
         //recupera as conexões formadas pelos dois caminhos
-        std::pair<int, int> firstConnection(pathList[firstIndex].nodeList[0], pathList[firstIndex].nodeList[pathList[firstIndex].nodeList.size() - 1] );;
-        std::pair<int, int> secondConnection(pathList[secondIndex].nodeList[0], pathList[secondIndex].nodeList[pathList[secondIndex].nodeList.size() - 1] )
+        std::pair<int, int> firstConnection(pathList[firstIndex].nodeList[0], pathList[firstIndex].nodeList[pathList[firstIndex].nodeList.size() - 1] );
+        std::pair<int, int> secondConnection(pathList[secondIndex].nodeList[0], pathList[secondIndex].nodeList[pathList[secondIndex].nodeList.size() - 1] );
 
 
         //nenhuma das conexões foi atendida se ambas colidem

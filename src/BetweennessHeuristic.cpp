@@ -4,6 +4,7 @@
 #include <vector> //std::vector
 #include <utility> //std::pair
 #include <stack> //std::stack
+#include <climits> //INT_MAX
 
 int BetweennessHeuristic::getMinDistanceVertex(std::vector<int> vec)
 {
@@ -146,7 +147,7 @@ int BetweennessHeuristic::calculate(Graph &graph, std::vector< std::pair<int, in
   for(auto & edge: edges)
   {
     //edge.second = betweenness
-    if(edge.second > maxBetweenness) maxBetweenness = it.second;
+    if(edge.second > maxBetweenness) maxBetweenness = edge.second;
   }
 
   return maxBetweenness;

@@ -6,14 +6,13 @@
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
 
+
 class Limit
 {
 
   public:
 
-    void calculate();
-
-    bool isViable = false;
+    bool isViable;
     int value;
 
 };
@@ -24,7 +23,12 @@ class GlobalLowerLimit: public Limit{};
 class GlobalUpperLimit: public Limit{};
 class LocalLowerLimit: public Limit{};
 class LocalUpperLimit: public Limit{};
-class PathGlobalUpperLimit: public Limit{};
+class PathGlobalUpperLimit: public Limit{
+
+  public:
+    void calculate(Graph & graph);
+
+};
 
 class BranchAndBound
 {
@@ -32,7 +36,7 @@ class BranchAndBound
 
     void run(Graph &graph, std::vector< std::pair<int, int> > & requestedConnections,
        std::vector< std::unordered_set<int> > frequencies, int frequencyIndex,
-       std::vector< std::pair<int, int> > connectionsToDo);
+       std::vector< std::pair<int, int> > connectionsToDo, LocalUpperLimit localUpperLimit, LocalLowerLimit localLowerLimit);
 
     bool findPath(Graph &graph, int source, int destination, int frequency, Path &presentPath);
 
@@ -43,12 +47,12 @@ class BranchAndBound
     void checkConnections(Graph graph, std::vector< std::pair<int, int> > & requestedConnections,
        std::vector< std::unordered_set<int> > & frequencies, std::vector< std::pair<int, int> > &connectionsToDo);
 
-    static GlobalUpperLimit globalUpperLimit;
-    static GlobalLowerLimit globalLowerLimit;
-    static PathGlobalUpperLimit pathLimit;
-    static int maxFrequencies;
-    static std::vector< std::unordered_set<int> > &bestSolution;
-    static int &bestSolutionValue;
+    GlobalUpperLimit globalUpperLimit;
+    GlobalLowerLimit globalLowerLimit;
+    PathGlobalUpperLimit pathLimit;
+    int maxFrequencies;
+    std::vector< std::unordered_set<int> > bestSolution;
+    int bestSolutionValue;
 
 };
 
