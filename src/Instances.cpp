@@ -21,13 +21,13 @@ Graph generateInstance1(std::vector< std::pair<int, int> > & instance1RequestedC
   graph.addEdge(0, 6);
 
 
-  std::pair<int, int> instance1Connection1(1, 4);
-  std::pair<int, int> instance1Connection2(2, 9);
-  std::pair<int, int> instance1Connection3(5, 8);
+  std::pair<int, int> instance1Connection1(0, 3);
+  std::pair<int, int> instance1Connection2(1, 8);
+  std::pair<int, int> instance1Connection3(4, 7);
   instance1RequestedConnections.push_back(instance1Connection1);
   instance1RequestedConnections.push_back(instance1Connection2);
   instance1RequestedConnections.push_back(instance1Connection3);
-  
+
 
   return graph;
 

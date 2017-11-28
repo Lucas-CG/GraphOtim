@@ -3,6 +3,7 @@
 #include <iterator> //std::back_inserter
 #include <string> //std::string, std::stoi
 #include <unordered_set> //std::unordered_set
+#include <iostream> //std::cout, std::endl
 
 /*
 template<typename Out>
@@ -54,6 +55,25 @@ void Graph::addFrequency(int a, int b, int f)
 
   matrix[a][b].second.emplace(f);
   matrix[b][a].second.emplace(f);
+
+}
+
+void Graph::print()
+{
+
+  for(int i = 0; i < numVertices; i++)
+  {
+
+    std::cout << "[";
+
+    for(int j = 0; j < numVertices; j++)
+    {
+      std::cout << matrix[i][j].first << " ";
+    }
+
+    std::cout << "]" << std::endl;
+
+  }
 
 }
 

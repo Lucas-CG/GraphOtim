@@ -51,12 +51,18 @@ int main(int argc, char **argv)
   std::cout << "Resultado do branch-and-bound: " << bbResult << std::endl;
 
 
+
+
+
   startTime = std::chrono::high_resolution_clock::now();
   int shResult = sh.calculate(graph, requestedConnections);
   endTime = std::chrono::high_resolution_clock::now();
 
   printf("heuristica de divisao em roteamento e coloracao: %lf segundos\n", endTimeSpan.count());
   std::cout << "Resultado: " << shResult << std::endl;
+
+
+
 
 
   startTime = std::chrono::high_resolution_clock::now();

@@ -41,6 +41,7 @@ class Graph
 
     void addEdge(int a, int b);
     void addFrequency(int a, int b, int f);
+    void print();
 
     int numEdges = 0;
     int numVertices = 0;

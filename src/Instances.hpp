@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <utility>
+#include "Graph.hpp"
 
 //instance 1
 

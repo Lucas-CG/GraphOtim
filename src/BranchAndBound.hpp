@@ -5,6 +5,7 @@
 #include <vector> //std::vector
 #include <unordered_set> //std::unordered_set
 #include <utility> //std::pair
+#include <climits> //INT_MAX
 
 
 class Limit
@@ -42,9 +43,9 @@ class BranchAndBound
 
     Graph makeFrequencyGraph(Graph graph, std::vector< std::unordered_set<int> > &frequencies);
 
-    bool checkConnection(Graph graph, std::pair<int, int> connection, Path & path);
+    bool checkConnection(Graph & graph, std::pair<int, int> connection, Path & path);
 
-    void checkConnections(Graph graph, std::vector< std::pair<int, int> > & requestedConnections,
+    void checkConnections(Graph & graph, std::vector< std::pair<int, int> > & requestedConnections,
        std::vector< std::unordered_set<int> > & frequencies, std::vector< std::pair<int, int> > &connectionsToDo);
 
     GlobalUpperLimit globalUpperLimit;
@@ -52,7 +53,7 @@ class BranchAndBound
     PathGlobalUpperLimit pathLimit;
     int maxFrequencies;
     std::vector< std::unordered_set<int> > bestSolution;
-    int bestSolutionValue;
+    int bestSolutionValue = INT_MAX;
 
 };
 

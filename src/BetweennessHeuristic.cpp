@@ -6,18 +6,19 @@
 #include <stack> //std::stack
 #include <climits> //INT_MAX
 
-int BetweennessHeuristic::getMinDistanceVertex(std::vector<int> vec)
+int BetweennessHeuristic::getMinDistanceVertex(std::vector<int> dist, std::unordered_set<int> S_)
 {
 
   int minElement = INT_MAX;
   int minElementIndex;
 
-  for(int i = 0; i < vec.size(); i++)
+  for(int i = 0; i < dist.size(); i++)
   {
 
-    if(vec[i] < minElement)
+    //se a distância for menor e o vértice i estiver em S_
+    if(dist[i] < minElement && S_.find(i) != S_.end())
     {
-      minElement = vec[i];
+      minElement = dist[i];
       minElementIndex = i;
     }
 
@@ -35,32 +36,45 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, int source, int d
   Path shortestPath;
   bool foundAPath = false;
 
+  //std::cout << "criando vetor de distancias" << std::endl;
   std::vector<int> dist(graph.numVertices, INT_MAX);
   dist[source] = 0;
   //distância infinita para todos menos a raiz
 
+  //std::cout << "criando vetor de pred" << std::endl;
   //-1 = sem predecessor
   std::vector<int> pred(graph.numVertices, -1);
 
   //S_ tem todos os vértices
+
+  //std::cout << "criando S_" << std::endl;
   std::unordered_set<int> S_;
 
 
   for(int i = 0; i < graph.numVertices; i++)
   {
     S_.emplace(i);
+    //std::cout << "S_ <-" << i << std::endl;
   }
 
   while(!S_.empty())
   {
-    int u = getMinDistanceVertex(dist);
+
+    //for(auto & it: dist) std::cout << it << std::endl;
+
+    //pega o vértice de menor distância que está em S_
+    int u = getMinDistanceVertex(dist, S_);
+    //std::cout << "vértice " << u << " retirado de S_" << std::endl;
 
     S_.erase(u);
 
-    if(u == destination){
+    if(u == destination)
+    {
 
-      break;
+      //std::cout << "destino encontrado" << std::endl;
       foundAPath = true;
+      break;
+
 
     }
 
@@ -82,6 +96,9 @@ Path BetweennessHeuristic::dijkstraForBetweenness(Graph graph, int source, int d
 
   if(foundAPath)
   {
+
+    //std::cout << "formando caminho mínimo" << std::endl;
+
     //obtendo o caminho da origem ao destino
     std::stack<int> stack; //a ordem é obtida com predecessores ao contrário; vamos inverter com uma pilha
 
